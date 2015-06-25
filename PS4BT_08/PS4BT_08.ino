@@ -1,7 +1,8 @@
 #include <PS4BT.h>
 #include <usbhub.h>
 #include <Servo.h>
-
+#include <helper_3dmath.h>
+#include <I2Cdev.h>
 #ifdef dobogusinclude
 #include <spi4teensy3.h>
 #include <SPI.h>
@@ -243,17 +244,17 @@ void computePID() {
   ypr[1] = ypr[1] * 180 / M_PI;
   ypr[2] = ypr[2] * 180 / M_PI;
 
-  if (abs(ypr[0] - yprLast[0]) > 30) ypr[0] = yprLast[0];
-  if (abs(ypr[1] - yprLast[1]) > 30) ypr[1] = yprLast[1];
-  if (abs(ypr[2] - yprLast[2]) > 30) ypr[2] = yprLast[2];
+//  if (abs(ypr[0] - yprLast[0]) > 30) ypr[0] = yprLast[0];
+//  if (abs(ypr[1] - yprLast[1]) > 30) ypr[1] = yprLast[1];
+//  if (abs(ypr[2] - yprLast[2]) > 30) ypr[2] = yprLast[2];
   Serial.print("Y");
   Serial.print(ypr[0]);
   Serial.print("\n");
   Serial.print("P");
-  Serial.print(ypr[1]);
-  Serial.print("\n");
-  Serial.print("R");
-  Serial.print(ypr[2]);
+  Serial.print(yprLast[0]);
+//  Serial.print("\n");
+//  Serial.print("R");
+//  Serial.print(ypr[2]);
   Serial.print("\n");
   yprLast[0] = ypr[0];
   yprLast[1] = ypr[1];
