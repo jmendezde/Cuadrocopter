@@ -1,7 +1,7 @@
 #include <PS4BT.h>
 #include <usbhub.h>
 #include <Servo.h>
-#include <helper_3dmath.h>
+//#include <helper_3dmath.h>
 #include <I2Cdev.h>
 #ifdef dobogusinclude
 #include <spi4teensy3.h>
@@ -52,8 +52,8 @@ unsigned long UltimoCambio4 = micros();
  *
  */
 
-#define RC_HIGH_CH1 1000
-#define RC_LOW_CH1 2000
+#define RC_HIGH_CH1 0
+#define RC_LOW_CH1 255
 #define RC_ROUNDING_BASE 50
 
 /* Flight parameters
@@ -139,7 +139,7 @@ bool blinkState = false;
 
 void setup() {
 
-  Serial.begin(115200);//comunicacion serial
+  Serial.begin(9600);//comunicacion serial
   intARM();//Subrutina que carga la velocidad minia a los ESC's
   delay(ESC_ARM_DELAY);
   interrupciones();
@@ -200,15 +200,15 @@ void IMU() {
   ypr[0] = ax;
   ypr[1] = ay;
   ypr[2] = az;
-  //  Serial.print("Y");
-  //  Serial.print(ypr[0]);
-  //  Serial.print("\n");
-  //  Serial.print("P");
-  //  Serial.print(ypr[1]);
-  //  Serial.print("\n");
-  //  Serial.print("R");
-  //  Serial.print(ypr[2]);
-  //  Serial.print("\n");
+  //    Serial.print("Y-IMU");
+  //    Serial.print(ypr[0]);
+  //    Serial.print("\n");
+  //    Serial.print("P-IMU");
+  //    Serial.print(ypr[1]);
+  //    Serial.print("\n");
+  //    Serial.print("R-IMU");
+  //    Serial.print(ypr[2]);
+  //    Serial.print("\n");
   //      Serial.print("Acelerometro ");
   //      Serial.print(ax); Serial.print(" ");
   //      Serial.print(ay); Serial.print(" ");
@@ -224,9 +224,9 @@ void computePID() {
 
   acquireLock();
 
-  ch1 = floor(ch1 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
-  ch2 = floor(ch2 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
-  ch4 = floor(ch4 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
+  ch1 = floor(PS4.getAnalogHat(RightHatX) / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
+  ch2 = floor(PS4.getAnalogHat(RightHatY) / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
+  ch4 = floor(PS4.getAnalogButton(R2) / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
 
   ch2 = map(ch2, RC_LOW_CH1, RC_HIGH_CH1, PITCH_MIN, PITCH_MAX);
   ch1 = map(ch1, RC_LOW_CH1, RC_HIGH_CH1, ROLL_MIN, ROLL_MAX);
@@ -244,18 +244,18 @@ void computePID() {
   ypr[1] = ypr[1] * 180 / M_PI;
   ypr[2] = ypr[2] * 180 / M_PI;
 
-//  if (abs(ypr[0] - yprLast[0]) > 30) ypr[0] = yprLast[0];
-//  if (abs(ypr[1] - yprLast[1]) > 30) ypr[1] = yprLast[1];
-//  if (abs(ypr[2] - yprLast[2]) > 30) ypr[2] = yprLast[2];
-  Serial.print("Y");
-  Serial.print(ypr[0]);
-  Serial.print("\n");
-  Serial.print("P");
-  Serial.print(yprLast[0]);
-//  Serial.print("\n");
-//  Serial.print("R");
-//  Serial.print(ypr[2]);
-  Serial.print("\n");
+  if (abs(ypr[0] - yprLast[0]) > 30) ypr[0] = yprLast[0];
+  if (abs(ypr[1] - yprLast[1]) > 30) ypr[1] = yprLast[1];
+  if (abs(ypr[2] - yprLast[2]) > 30) ypr[2] = yprLast[2];
+  //    Serial.print("Y-VELOCIDAD");
+  //    Serial.print(ypr[0]);
+  //    Serial.print("\n");
+  //    Serial.print("P-VELOCIDAD");
+  //    Serial.print(ypr[1]);
+  //    Serial.print("\n");
+  //    Serial.print("R-VELOCIDAD");
+  //    Serial.print(ypr[2]);
+  //    Serial.print("\n");
   yprLast[0] = ypr[0];
   yprLast[1] = ypr[1];
   yprLast[2] = ypr[2];
@@ -273,9 +273,12 @@ void calculateVelocities() {
 
   acquireLock();
 
-  ch3 = floor(ch3 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
-  velocity = map(ch3, RC_LOW_CH1, RC_HIGH_CH1, ESC_MIN, ESC_MAX);
-
+  ch3 = floor(PS4.getAnalogHat(LeftHatY) / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
+  velocity = map(ch3,RC_LOW_CH1 ,RC_HIGH_CH1 , ESC_MIN, ESC_MAX);
+ 
+  Serial.print("Velocity");
+  Serial.print(velocity);
+  Serial.print("\r\n");
   releaseLock();
 
   if ((velocity < ESC_MIN) || (velocity > ESC_MAX)) velocity = velocityLast;
@@ -290,8 +293,6 @@ void calculateVelocities() {
 
   vc = (abs((-100 + bal_ac) / 100)) * v_ac;
   vd = (abs((-100 + bal_bd) / 100)) * v_bd;
-  //  Serial.println("velocity");
-  //  Serial.println(velocity);
 
   if (velocity < ESC_TAKEOFF_OFFSET) {
 
@@ -310,122 +311,122 @@ void updateMotors() {
   tercerESC.write(vc);
   segundoESC.write(vb);
   cuartoESC.write(vd);
-  //    Serial.print(va);
-  //    Serial.print("\r\n");
-  //    Serial.print(vc);
-  //    Serial.print("\r\n");
-  //    Serial.print(vb);
-  //    Serial.print("\r\n");
-  //    Serial.print(vd);
-  //    Serial.print("\r\n");
+     Serial.print(va);
+     Serial.print("\r\n");
+      Serial.print(vc);
+      Serial.print("\r\n");
+      Serial.print(vb);
+      Serial.print("\r\n");
+      Serial.print(vd);
+      Serial.print("\r\n");
 
 }
-void MANDOPS4() {
-
-  Usb.Task();
-  int minimo = 850;//valor a proximado para que el cuadricoptero no suba ni baje.
-  int value;
-  if (PS4.connected()) {
-    //Joysticks sin tocar velocidad minima
-    if (PS4.getAnalogHat(LeftHatY) >= 110 && PS4.getAnalogHat(LeftHatY) <= 130 && PS4.getAnalogHat(RightHatX) >= 31 && PS4.getAnalogHat(RightHatX) <= 239 && PS4.getAnalogHat(RightHatY) >= 31 && PS4.getAnalogHat(RightHatY) <= 239 && PS4.getAnalogButton(R2) < 240 && PS4.getAnalogButton(L2) < 240) {
-      cuartoESC.writeMicroseconds(minimo);
-      tercerESC.writeMicroseconds(minimo);
-      primerESC.writeMicroseconds(minimo);
-      segundoESC.writeMicroseconds(minimo);
-      //      Serial.print(F("\t Joysticks sin tocar"));
-    }
-    //SUBIR Y BAJAR al pulsar el joystick izquierdo mas de valor 137 o igual
-    if (PS4.getAnalogHat(LeftHatY) >= 137) {
-      value = PS4.getAnalogHat(LeftHatY) * 8, 5;
-      cuartoESC.writeMicroseconds(value);
-      tercerESC.writeMicroseconds(value);
-      primerESC.writeMicroseconds(value);
-      segundoESC.writeMicroseconds(value);
-      //      Serial.print(F("\tLeftHatY:>=137 "));
-
-    } if (PS4.getAnalogHat(LeftHatY) <= 109) {
-      //Para evitar que el rango sea 0 de velocidad al subir y bajar.
-      cuartoESC.writeMicroseconds(minimo);
-      tercerESC.writeMicroseconds(minimo);
-      primerESC.writeMicroseconds(minimo);
-      segundoESC.writeMicroseconds(minimo);
-      //      Serial.print(F("\tLeftHatY:<=109 "));
-    }
-    //Roll
-    if (PS4.getAnalogHat(RightHatX) <= 30) {
-      //        valueR = PS4.getAnalogHat(RightHatX)*8,5;
-      cuartoESC.writeMicroseconds(minimo);
-      tercerESC.writeMicroseconds(minimo);
-      primerESC.writeMicroseconds(minimo);
-      segundoESC.writeMicroseconds(1075);
-      //      Serial.print(F("\tRightHatX:>=240 "));
-    } if (PS4.getAnalogHat(RightHatX) >= 240) {
-      //        valueR = PS4.getAnalogHat(RightHatX);
-      cuartoESC.writeMicroseconds(1075);
-      tercerESC.writeMicroseconds(minimo);
-      primerESC.writeMicroseconds(minimo);
-      segundoESC.writeMicroseconds(minimo);
-      //      Serial.print(F("\tRightHatX:<=30 "));
-      //        Serial.println(valueR);
-
-      //Pitch
-    } if (PS4.getAnalogHat(RightHatY) <= 30) {
-      //        valueP = PS4.getAnalogHat(RightHatY)*8,5;
-      cuartoESC.writeMicroseconds(minimo);
-      tercerESC.writeMicroseconds(1000);
-      primerESC.writeMicroseconds(minimo);
-      segundoESC.writeMicroseconds(minimo);
-      //      Serial.print(F("\tRightHatY:>=180 "));
-    } if (PS4.getAnalogHat(RightHatY) >= 240) {
-      //        valueP = PS4.getAnalogHat(RightHatY)*8,5;
-      cuartoESC.writeMicroseconds(minimo);
-      tercerESC.writeMicroseconds(minimo);
-      primerESC.writeMicroseconds(1000);
-      segundoESC.writeMicroseconds(minimo);
-      //      Serial.print(F("\tRightHatY:<=30 "));
-
-    }
-    if (PS4.getAnalogButton(L2) != oldL2Value || PS4.getAnalogButton(R2) != oldR2Value) // Only write value if it's different
-      PS4.setRumbleOn(PS4.getAnalogButton(L2), PS4.getAnalogButton(R2));
-    oldL2Value = PS4.getAnalogButton(L2);
-    oldR2Value = PS4.getAnalogButton(R2);
-    if (PS4.getAnalogButton(L2) >= 240) {
-      //YAW-->Izquierda
-      cuartoESC.writeMicroseconds(minimo);
-      tercerESC.writeMicroseconds(minimo);
-      primerESC.writeMicroseconds(1000);
-      segundoESC.writeMicroseconds(minimo);
-      //Serial.print(F("\tYAW Izquierda "));
-    }
-    if (PS4.getAnalogButton(R2) >= 240) {
-      //YAW-->Derecha
-      cuartoESC.writeMicroseconds(minimo);
-      tercerESC.writeMicroseconds(1175);
-      primerESC.writeMicroseconds(minimo);
-      segundoESC.writeMicroseconds(minimo);
-      //Serial.print(F("\tYAW Derecha "));
-
-    }
-    if (PS4.getButtonClick(PS)) {
-      //Serial.print(F("\r\nPS"));
-      cuartoESC.writeMicroseconds(0);
-      tercerESC.writeMicroseconds(0);
-      primerESC.writeMicroseconds(0);
-      segundoESC.writeMicroseconds(0);
-      PS4.disconnect();
-      //     }if (PS4.getButtonClick(UP)) {
-      //      pos += 1; // goes from 0 degrees to 180 degrees
-      //      // in steps of 1 degree
-      //      ServoCam.write(pos);              // tell servo to go to position in variable 'pos'
-      //      //delay(15);                       // waits 15ms for the servo to reach the position
-      //
-      //    } if (PS4.getButtonClick(DOWN)) {
-      //      pos -= 1; // goes from 180 degrees to 0 degrees
-      //      ServoCam.write(pos);              // tell servo to go to position in variable 'pos'
-      //      //delay(15);                       // waits 15ms for the servo to reach the position
-    }
-  }
-}
+//void MANDOPS4() {
+//
+//  Usb.Task();
+//  int minimo = 850;//valor a proximado para que el cuadricoptero no suba ni baje.
+//  int value;
+//  if (PS4.connected()) {
+////    //Joysticks sin tocar velocidad minima
+////    if (PS4.getAnalogHat(LeftHatY) >= 110 && PS4.getAnalogHat(LeftHatY) <= 130 && PS4.getAnalogHat(RightHatX) >= 31 && PS4.getAnalogHat(RightHatX) <= 239 && PS4.getAnalogHat(RightHatY) >= 31 && PS4.getAnalogHat(RightHatY) <= 239 && PS4.getAnalogButton(R2) < 240 && PS4.getAnalogButton(L2) < 240) {
+////      cuartoESC.writeMicroseconds(minimo);
+////      tercerESC.writeMicroseconds(minimo);
+////      primerESC.writeMicroseconds(minimo);
+////      segundoESC.writeMicroseconds(minimo);
+////      //      Serial.print(F("\t Joysticks sin tocar"));
+////    }
+////    //SUBIR Y BAJAR al pulsar el joystick izquierdo mas de valor 137 o igual
+////    if (PS4.getAnalogHat(LeftHatY) >= 137) {
+////      value = PS4.getAnalogHat(LeftHatY) * 8, 5;
+////      cuartoESC.writeMicroseconds(value);
+////      tercerESC.writeMicroseconds(value);
+////      primerESC.writeMicroseconds(value);
+////      segundoESC.writeMicroseconds(value);
+////      //      Serial.print(F("\tLeftHatY:>=137 "));
+////
+////    } if (PS4.getAnalogHat(LeftHatY) <= 109) {
+////      //Para evitar que el rango sea 0 de velocidad al subir y bajar.
+////      cuartoESC.writeMicroseconds(minimo);
+////      tercerESC.writeMicroseconds(minimo);
+////      primerESC.writeMicroseconds(minimo);
+////      segundoESC.writeMicroseconds(minimo);
+////      //      Serial.print(F("\tLeftHatY:<=109 "));
+////    }
+////    //Roll
+////    if (PS4.getAnalogHat(RightHatX) <= 30) {
+////      //        valueR = PS4.getAnalogHat(RightHatX)*8,5;
+////      cuartoESC.writeMicroseconds(minimo);
+////      tercerESC.writeMicroseconds(minimo);
+////      primerESC.writeMicroseconds(minimo);
+////      segundoESC.writeMicroseconds(1075);
+////      //      Serial.print(F("\tRightHatX:>=240 "));
+////    } if (PS4.getAnalogHat(RightHatX) >= 240) {
+////      //        valueR = PS4.getAnalogHat(RightHatX);
+////      cuartoESC.writeMicroseconds(1075);
+////      tercerESC.writeMicroseconds(minimo);
+////      primerESC.writeMicroseconds(minimo);
+////      segundoESC.writeMicroseconds(minimo);
+////      //      Serial.print(F("\tRightHatX:<=30 "));
+////      //        Serial.println(valueR);
+////
+////      //Pitch
+////    } if (PS4.getAnalogHat(RightHatY) <= 30) {
+////      //        valueP = PS4.getAnalogHat(RightHatY)*8,5;
+////      cuartoESC.writeMicroseconds(minimo);
+////      tercerESC.writeMicroseconds(1000);
+////      primerESC.writeMicroseconds(minimo);
+////      segundoESC.writeMicroseconds(minimo);
+////      //      Serial.print(F("\tRightHatY:>=180 "));
+////    } if (PS4.getAnalogHat(RightHatY) >= 240) {
+////      //        valueP = PS4.getAnalogHat(RightHatY)*8,5;
+////      cuartoESC.writeMicroseconds(minimo);
+////      tercerESC.writeMicroseconds(minimo);
+////      primerESC.writeMicroseconds(1000);
+////      segundoESC.writeMicroseconds(minimo);
+////      //      Serial.print(F("\tRightHatY:<=30 "));
+////
+////    }
+////    if (PS4.getAnalogButton(L2) != oldL2Value || PS4.getAnalogButton(R2) != oldR2Value) // Only write value if it's different
+////      PS4.setRumbleOn(PS4.getAnalogButton(L2), PS4.getAnalogButton(R2));
+////    oldL2Value = PS4.getAnalogButton(L2);
+////    oldR2Value = PS4.getAnalogButton(R2);
+////    if (PS4.getAnalogButton(L2) >= 240) {
+////      //YAW-->Izquierda
+////      cuartoESC.writeMicroseconds(minimo);
+////      tercerESC.writeMicroseconds(minimo);
+////      primerESC.writeMicroseconds(1000);
+////      segundoESC.writeMicroseconds(minimo);
+////      //Serial.print(F("\tYAW Izquierda "));
+////    }
+////    if (PS4.getAnalogButton(R2) >= 240) {
+////      //YAW-->Derecha
+////      cuartoESC.writeMicroseconds(minimo);
+////      tercerESC.writeMicroseconds(1175);
+////      primerESC.writeMicroseconds(minimo);
+////      segundoESC.writeMicroseconds(minimo);
+////      //Serial.print(F("\tYAW Derecha "));
+////
+////    }
+//    if (PS4.getButtonClick(PS)) {
+//      //Serial.print(F("\r\nPS"));
+//      cuartoESC.writeMicroseconds(0);
+//      tercerESC.writeMicroseconds(0);
+//      primerESC.writeMicroseconds(0);
+//      segundoESC.writeMicroseconds(0);
+//      PS4.disconnect();
+////      //     }if (PS4.getButtonClick(UP)) {
+////      //      pos += 1; // goes from 0 degrees to 180 degrees
+////      //      // in steps of 1 degree
+////      //      ServoCam.write(pos);              // tell servo to go to position in variable 'pos'
+////      //      //delay(15);                       // waits 15ms for the servo to reach the position
+////      //
+////      //    } if (PS4.getButtonClick(DOWN)) {
+////      //      pos -= 1; // goes from 180 degrees to 0 degrees
+////      //      ServoCam.write(pos);              // tell servo to go to position in variable 'pos'
+////      //      //delay(15);                       // waits 15ms for the servo to reach the position
+//    }
+//  }
+//}
 
 void initBalancing() {
 
@@ -468,7 +469,7 @@ void Interrupcion2() {
 }
 
 void Interrupcion3() {
-  if (!interruptLock) ch3 = micros() - UltimoCambio3;
+  if (!interruptLock) ch3 = micros()- UltimoCambio3;
   UltimoCambio3 = micros();
 }
 void Interrupcion4() {
