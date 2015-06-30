@@ -43,7 +43,7 @@ Servo cuartoESC, tercerESC, primerESC, segundoESC, ServoCam; //declaro los servo
 #define ESC_TAKEOFF_OFFSET 30
 #define ESC_ARM_DELAY 10000
 
-float ch1, ch2, ch3, ch4;         // PS4 mando inputs
+double ch1, ch2, ch3, ch4;         // PS4 mando inputs
 unsigned long UltimoCambio1 = micros();
 unsigned long UltimoCambio2 = micros();
 unsigned long UltimoCambio3 = micros();
@@ -87,8 +87,8 @@ unsigned long UltimoCambio4 = micros();
 /*  GY-85 variables
  *
  */
-float ypr[3] = {0.0f, 0.0f, 0.0f};     // yaw pitch roll values
-float yprLast[3] = {0.0f, 0.0f, 0.0f};
+double ypr[3] = {0, 0, 0};     // yaw pitch roll values
+double yprLast[3] = {0, 0, 0};
 
 
 /* Interrupt lock
@@ -103,7 +103,7 @@ boolean interruptLock = false;
 
 int velocity;                          // global velocity
 
-float bal_ac, bal_bd;                 // motor balances can vary between -100 & 100
+double bal_ac, bal_bd;                 // motor balances can vary between -100 & 100
 float bal_axes;                       // throttle balance between axes -100:ac , +100:bd
 
 int va, vb, vc, vd;                    //velocities
@@ -117,9 +117,9 @@ float ch1Last, ch2Last, ch4Last, velocityLast;
  *
  */
 
-PID pitchReg((double *) &ypr[1], (double*)&bal_bd, (double*) &ch2, PITCH_P_VAL, PITCH_I_VAL, PITCH_D_VAL, REVERSE);
-PID rollReg((double *)&ypr[0], (double *) &bal_ac, (double *) &ch1, ROLL_P_VAL, ROLL_I_VAL, ROLL_D_VAL, REVERSE);
-PID yawReg((double *)&ypr[2], (double *)&bal_axes, (double *) &ch4, YAW_P_VAL, YAW_I_VAL, YAW_D_VAL, DIRECT);
+PID pitchReg(&ypr[1], &bal_bd, &ch2, PITCH_P_VAL, PITCH_I_VAL, PITCH_D_VAL, REVERSE);
+PID rollReg(&ypr[0], &bal_ac, &ch1, ROLL_P_VAL, ROLL_I_VAL, ROLL_D_VAL, DIRECT);
+//PID yawReg((double *)&ypr[2], (double *)&bal_axes, (double *) &ch4, YAW_P_VAL, YAW_I_VAL, YAW_D_VAL, DIRECT);
 
 
 
@@ -160,13 +160,25 @@ void setup() {
 }
 
 void loop() {
-Usb.Task();
-  //MANDOPS4();//Subrutina Configuracion del mando de PS4
+  Usb.Task();
+  MANDOPS4();//Subrutina Configuracion del mando de PS4
   IMU();  //Subrutina que retorna los valores del sensor
   computePID();
   calculateVelocities();
   updateMotors();
-
+  Serial.print("YPR-0: ");
+  Serial.print(ypr[0]);
+  Serial.print("\r\n");
+  Serial.print("YPR-1: ");
+  Serial.print(ypr[1]);
+  Serial.print("\r\n");
+  Serial.print("bal_ac");
+  Serial.print(bal_ac);
+  Serial.print("\r\n");
+  Serial.print("bal_bd");
+  Serial.print(bal_bd);
+  Serial.print("\r\n");
+  delay(800);
 }
 
 void intARM() {
@@ -199,20 +211,7 @@ void IMU() {
   gyro.getRotation(&gx, &gy, &gz);
   ypr[0] = ax;
   ypr[1] = ay;
-  ypr[2] = az;
-  //    Serial.print("Y-IMU");
-  //    Serial.print(ypr[0]);
-  //    Serial.print("\n");
-  //    Serial.print("P-IMU");
-  //    Serial.print(ypr[1]);
-  //    Serial.print("\n");
-  //    Serial.print("R-IMU");
-  //    Serial.print(ypr[2]);
-  //    Serial.print("\n");
-  //      Serial.print("Acelerometro ");
-  //      Serial.print(ax); Serial.print(" ");
-  //      Serial.print(ay); Serial.print(" ");
-  //      Serial.print(az); Serial.print(" ");
+  //ypr[2] = az;
 }
 /*  computePID function
  *
@@ -226,43 +225,35 @@ void computePID() {
 
   ch1 = floor(PS4.getAnalogHat(RightHatX) / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
   ch2 = floor(PS4.getAnalogHat(RightHatY) / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
-  ch4 = floor(PS4.getAnalogButton(R2) / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
+  //ch4 = floor(PS4.getAnalogButton(R2) / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
 
   ch2 = map(ch2, RC_LOW_CH1, RC_HIGH_CH1, PITCH_MIN, PITCH_MAX);
   ch1 = map(ch1, RC_LOW_CH1, RC_HIGH_CH1, ROLL_MIN, ROLL_MAX);
-  ch4 = map(ch4, RC_LOW_CH1, RC_HIGH_CH1, YAW_MIN, YAW_MAX);
+  //ch4 = map(ch4, RC_LOW_CH1, RC_HIGH_CH1, YAW_MIN, YAW_MAX);
 
   if ((ch2 < PITCH_MIN) || (ch2 > PITCH_MAX)) ch2 = ch2Last;
   if ((ch1 < ROLL_MIN) || (ch1 > ROLL_MAX)) ch1 = ch1Last;
-  if ((ch4 < YAW_MIN) || (ch4 > YAW_MAX)) ch4 = ch4Last;
+  //if ((ch4 < YAW_MIN) || (ch4 > YAW_MAX)) ch4 = ch4Last;
 
   ch1Last = ch1;
   ch2Last = ch2;
-  ch4Last = ch4;
+  //ch4Last = ch4;
 
   ypr[0] = ypr[0] * 180 / M_PI;
   ypr[1] = ypr[1] * 180 / M_PI;
-  ypr[2] = ypr[2] * 180 / M_PI;
+  //ypr[2] = ypr[2] * 180 / M_PI;
 
   if (abs(ypr[0] - yprLast[0]) > 30) ypr[0] = yprLast[0];
   if (abs(ypr[1] - yprLast[1]) > 30) ypr[1] = yprLast[1];
-  if (abs(ypr[2] - yprLast[2]) > 30) ypr[2] = yprLast[2];
-  //    Serial.print("Y-VELOCIDAD");
-  //    Serial.print(ypr[0]);
-  //    Serial.print("\n");
-  //    Serial.print("P-VELOCIDAD");
-  //    Serial.print(ypr[1]);
-  //    Serial.print("\n");
-  //    Serial.print("R-VELOCIDAD");
-  //    Serial.print(ypr[2]);
-  //    Serial.print("\n");
+  //if (abs(ypr[2] - yprLast[2]) > 30) ypr[2] = yprLast[2];
+
   yprLast[0] = ypr[0];
   yprLast[1] = ypr[1];
-  yprLast[2] = ypr[2];
+  //yprLast[2] = ypr[2];
 
   pitchReg.Compute();
   rollReg.Compute();
-  yawReg.Compute();
+  //yawReg.Compute();
 
   releaseLock();
 
@@ -274,8 +265,8 @@ void calculateVelocities() {
   acquireLock();
 
   ch3 = floor(PS4.getAnalogHat(LeftHatY) / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
-  velocity = map(ch3,RC_HIGH_CH1 , RC_LOW_CH1, ESC_MIN, ESC_MAX);
- 
+  velocity = map(ch3, RC_HIGH_CH1 , RC_LOW_CH1, ESC_MIN, ESC_MAX);
+
   Serial.print("Velocity");
   Serial.print(velocity);
   Serial.print("\r\n");
@@ -290,7 +281,12 @@ void calculateVelocities() {
 
   va = ((100 + bal_ac) / 100) * v_ac;
   vb = ((100 + bal_bd) / 100) * v_bd;
-
+  //  Serial.print("bal_ac");
+  //  Serial.print(bal_ac);
+  //  Serial.print("\r\n");
+  //  Serial.print("bal_bd");
+  //  Serial.print(bal_bd);
+  //  Serial.print("\r\n");
   vc = (abs((-100 + bal_ac) / 100)) * v_ac;
   vd = (abs((-100 + bal_bd) / 100)) * v_bd;
 
@@ -311,28 +307,28 @@ void updateMotors() {
   tercerESC.write(vc);
   segundoESC.write(vb);
   cuartoESC.write(vd);
-     Serial.print(va);
-     Serial.print("\r\n");
-      Serial.print(vc);
-      Serial.print("\r\n");
-      Serial.print(vb);
-      Serial.print("\r\n");
-      Serial.print(vd);
-      Serial.print("\r\n");
+  Serial.print(va);
+  Serial.print("\r\n");
+  Serial.print(vc);
+  Serial.print("\r\n");
+  Serial.print(vb);
+  Serial.print("\r\n");
+  Serial.print(vd);
+  Serial.print("\r\n");
 
 }
 void MANDOPS4() {
-  Usb.Task();
-    if (PS4.getButtonClick(PS)) {
-      //Serial.print(F("\r\nPS"));
-      cuartoESC.writeMicroseconds(0);
-      tercerESC.writeMicroseconds(0);
-      primerESC.writeMicroseconds(0);
-      segundoESC.writeMicroseconds(0);
-      PS4.disconnect();
 
-    }
+  if (PS4.getButtonClick(PS)) {
+    //Serial.print(F("\r\nPS"));
+    cuartoESC.writeMicroseconds(0);
+    tercerESC.writeMicroseconds(0);
+    primerESC.writeMicroseconds(0);
+    segundoESC.writeMicroseconds(0);
+    PS4.disconnect();
+
   }
+}
 
 void initBalancing() {
 
@@ -350,8 +346,8 @@ void initRegulators() {
   rollReg.SetMode(AUTOMATIC);
   rollReg.SetOutputLimits(-PID_ROLL_INFLUENCE, PID_ROLL_INFLUENCE);
 
-  yawReg.SetMode(AUTOMATIC);
-  yawReg.SetOutputLimits(-PID_YAW_INFLUENCE, PID_YAW_INFLUENCE);
+  //  yawReg.SetMode(AUTOMATIC);
+  //  yawReg.SetOutputLimits(-PID_YAW_INFLUENCE, PID_YAW_INFLUENCE);
 
 }
 
