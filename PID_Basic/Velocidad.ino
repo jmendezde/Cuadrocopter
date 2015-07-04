@@ -1,7 +1,7 @@
 void calculateVelocities(){
 
 
-  ch3 = floor(150 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
+  ch3 = floor(0 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
   velocity = map(ch3, RC_LOW_CH1, RC_HIGH_CH1, ESC_MAX, ESC_MIN);
 
   if ((velocity < ESC_MIN) || (velocity > ESC_MAX)) velocity = velocityLast;

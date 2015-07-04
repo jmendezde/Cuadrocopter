@@ -7,8 +7,16 @@
 #include <Servo.h>
 #define PIN_InputRoll 0
 #define PIN_OUTPUT 3
+#include <Wire.h>
+#include <Kalman.h> // Source: https://github.com/TKJElectronics/KalmanFilter
+
+#define RESTRICT_PITCH // Comment out to restrict roll to ±90deg instead - please read: http://www.freescale.com/files/sensors/doc/app_note/AN3461.pdf
+
+Kalman kalmanX; // Create the Kalman instances
+Kalman kalmanY;
+
 ///Sensor IMU
-#include "Wire.h"
+//#include "Wire.h"
 #include "I2Cdev.h"
 #include "ADXL345.h"
 #include "HMC5883L.h"
@@ -18,8 +26,11 @@
 #define PITCH_MAX 30
 #define ROLL_MIN -50
 #define ROLL_MAX 50
+#define YAW_MIN -180
+#define YAW_MAX 180
+
 #define ESC_MIN 750
-#define ESC_MAX 1900
+#define ESC_MAX 2000
 #define ESC_TAKEOFF_OFFSET 30
 #define ESC_ARM_DELAY 10
 /* Interrupt lock
@@ -44,8 +55,7 @@ Servo cuartoESC, tercerESC, primerESC, segundoESC, ServoCam; //declaro los servo
 #define RC_HIGH_CH1 0
 #define RC_LOW_CH1 255
 #define RC_ROUNDING_BASE 50
-#define YAW_MIN -180
-#define YAW_MAX 180
+
 #define PITCH_P_VAL 0.5
 #define PITCH_I_VAL 0
 #define PITCH_D_VAL 1
@@ -63,6 +73,8 @@ int16_t ax, ay, az;
 int16_t mx, my, mz;
 int16_t gx, gy, gz;
 
+int16_t tempRaw;
+
 #define PID_PITCH_INFLUENCE 20
 #define PID_ROLL_INFLUENCE 20
 #define PID_YAW_INFLUENCE 20
@@ -74,44 +86,45 @@ double ypr[3] = {0, 0, 0};
 double yprLast[3] = {0, 0, 0};
 //Specify the links and initial tuning parameters
 double Kp = 2, Ki = 5, Kd = 1;
-PID rollReg(&InputRoll, &Output, &SetpointRoll, Kp, Ki, Kd, REVERSE);
-PID pitchReg(&InputPitch, &Output1, &SetpointPitch, PITCH_P_VAL, PITCH_I_VAL, PITCH_D_VAL, REVERSE);
-PID yawReg(&InputYaw, &Output2, &SetpointYaw, Kp, Ki, Kd, DIRECT);
+PID rollReg(&ypr[0], &Output, &SetpointRoll, Kp, Ki, Kd, REVERSE);
+PID pitchReg(&ypr[1], &Output1, &SetpointPitch, PITCH_P_VAL, PITCH_I_VAL, PITCH_D_VAL, REVERSE);
+PID yawReg(&ypr[2], &Output2, &SetpointYaw, Kp, Ki, Kd, DIRECT);
 
+double gxangle, gyangle; // Angle calculate using the gyro only
+double compAngleX, compAngleY; // Calculated angle using a complementary filter
+double kalAngleX, kalAngleY; // Calculated angle using a Kalman filter
 
-
+uint32_t timer;
+uint8_t i2cData[14]; // Buffer for I2C data
 
 void setup()
 {
-  Serial.begin(115200);//comunicacion serial
   intARM();
   delay(ESC_ARM_DELAY);
+  Serial.begin(115200);
+
+initKalman();  
   initBalancing();
   initRegulators();
   initIMU();
-  //initialize the variables we're linked to
-  InputRoll = ypr[0];
-  InputPitch = ypr[1];
-  InputYaw = ypr[2];
-  SetpointRoll = 30;
-  SetpointPitch = 10;
-  SetpointYaw = 107;
+  initSetpoints();
+
 }
 void loop()
 {
-
   IMU();
+  KalmanCorrection();
   computePID();
   calculateVelocities();
   updateMotors();
   //delay(100);
-  Serial.print("\tSalida:A\t");
+  Serial.print("\tVA\t");
   Serial.print(va);
-  Serial.print("\tSalida:B\t");
+  Serial.print("\tVB\t");
   Serial.print(vb);
-  Serial.print("\tSalida:C\t");
+  Serial.print("\tVC\t");
   Serial.print(vc);
-  Serial.print("\tSalida:D\t");
+  Serial.print("\tVD\t");
   Serial.print(vd);
   Serial.print("\r\n");
 }
