@@ -2,15 +2,10 @@
  * PID Basic Example
  * Reading analog InputRoll 0 to control analog PWM output 3
  ********************************************************/
-//
-//#ifdef dobogusinclude
-//#include <spi4teensy3.h>
-//#include <SPI.h>
-//#endif
-//#include <PS4BT.h>
-//#include <usbhub.h>
+
 #include <PID_v1.h>
 #include <Servo.h>
+
 #include <Wire.h>
 #include <Kalman.h> // Source: https://github.com/TKJElectronics/KalmanFilter
 
@@ -18,25 +13,20 @@
 
 Kalman kalmanX; // Create the Kalman instances
 Kalman kalmanY;
-#define gyroAddress 0x68
-#define adxlAddress 0x53
 
+/* IMU Data */
+double accX, accY, accZ;
+double gyroX, gyroY, gyroZ;
+int16_t tempRaw;
 
-double zeroValue[5] = { 10, 0, 227, 679, 28}; // Found by experimenting
+double gyroXangle, gyroYangle; // Angle calculate using the gyro only
+double compAngleX, compAngleY; // Calculated angle using a complementary filter
+double kalAngleX, kalAngleY; // Calculated angle using a Kalman filter
 
-/* All the angles start at 180 degrees */
-double gyroXangle = 180;
-double gyroYangle = 180;
+uint32_t timer;
+uint8_t i2cData[14]; // Buffer for I2C data
 
-double compAngleX = 180;
-double compAngleY = 180;
-
-double xAngle = 0;
-double yAngle = 0;
-
-unsigned long timer;
-
-uint8_t buffer[2]; // I2C buffer
+// TODO: Make calibration routine
 ///Sensor IMU
 //#include "Wire.h"
 #include "I2Cdev.h"
@@ -44,15 +34,15 @@ uint8_t buffer[2]; // I2C buffer
 #include "HMC5883L.h"
 #include "ITG3200.h"
 
-#define PITCH_MIN 0
-#define PITCH_MAX 90
-#define ROLL_MIN 0
-#define ROLL_MAX 90
-#define YAW_MIN 180
+#define PITCH_MIN -30
+#define PITCH_MAX 30
+#define ROLL_MIN -50
+#define ROLL_MAX 50
+#define YAW_MIN -180
 #define YAW_MAX 180
 
-#define ESC_MIN 600
-#define ESC_MAX 1900
+#define ESC_MIN 750
+#define ESC_MAX 2000
 #define ESC_TAKEOFF_OFFSET 30
 #define ESC_ARM_DELAY 10
 /* Interrupt lock
@@ -64,7 +54,7 @@ float ch1Last, ch2Last, ch4Last, velocityLast;
 int velocity;                          // global velocity
 
 int va, vb, vc, vd;                    //velocities
-int v_cd, v_ab,v_cb,v_ad;                        // velocity of axes
+int v_ac, v_bd;                        // velocity of axes
 Servo cuartoESC, tercerESC, primerESC, segundoESC, ServoCam; //declaro los servos
 #define ESC_A 7
 #define ESC_B 6
@@ -74,8 +64,8 @@ Servo cuartoESC, tercerESC, primerESC, segundoESC, ServoCam; //declaro los servo
  *
  */
 
-#define RC_HIGH_CH1 255
-#define RC_LOW_CH1 0
+#define RC_HIGH_CH1 0
+#define RC_LOW_CH1 255
 #define RC_ROUNDING_BASE 50
 
 #define PITCH_P_VAL 0.5
@@ -95,11 +85,10 @@ int16_t ax, ay, az;
 int16_t mx, my, mz;
 int16_t gx, gy, gz;
 
-int16_t tempRaw;
 
-#define PID_PITCH_INFLUENCE 255
-#define PID_ROLL_INFLUENCE 255
-#define PID_YAW_INFLUENCE 255
+#define PID_PITCH_INFLUENCE 20
+#define PID_ROLL_INFLUENCE 20
+#define PID_YAW_INFLUENCE 20
 
 double ch1, ch2, ch3, ch4;
 //Define Variables we'll be connecting to
@@ -112,23 +101,12 @@ PID rollReg(&ypr[0], &Output, &SetpointRoll, Kp, Ki, Kd, REVERSE);
 PID pitchReg(&ypr[1], &Output1, &SetpointPitch, PITCH_P_VAL, PITCH_I_VAL, PITCH_D_VAL, REVERSE);
 PID yawReg(&ypr[2], &Output2, &SetpointYaw, Kp, Ki, Kd, DIRECT);
 
-///* Configuracion de Mando PS4
-// *
-// */
-//
-//USB Usb;//Declaro la conexion BT con el Mando PS4
-//BTD Btd(&Usb);
-////PS4BT PS4(&Btd, PAIR);
-//PS4BT PS4(&Btd);
-
-
-
 void setup()
 {
   intARM();
-  // delay(ESC_ARM_DELAY);------------------------------IMPORTANTE-------------------------------------
+  delay(ESC_ARM_DELAY);
   Serial.begin(115200);
-
+  Wire.begin();
   initKalman();
   initBalancing();
   initRegulators();
@@ -138,14 +116,12 @@ void setup()
 }
 void loop()
 {
-
-  //MANDOPS4();//Subrutina Configuracion del mando de PS4
   IMU();
-  //KalmanCorrection();
+  KalmanCorrection();
   computePID();
   calculateVelocities();
   updateMotors();
-  delay(100);
+  //delay(100);
   Serial.print("\tVA\t");
   Serial.print(va);
   Serial.print("\tVB\t");

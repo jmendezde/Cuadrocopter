@@ -73,8 +73,8 @@ int readAccZ() {
 
 void initKalman() {
  
-  kalmanX.setAngle(90); // Set starting angle
-  kalmanY.setAngle(90);
+  kalmanX.setAngle(180); // Set starting angle
+  kalmanY.setAngle(180);
   timer = micros();
 }
 

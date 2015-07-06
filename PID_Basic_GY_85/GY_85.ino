@@ -16,6 +16,12 @@ void IMU() {
   ypr[0] = ax;
   ypr[1] = ay;
   ypr[2] = my;
-  
+  Serial.print("\tax\t");
+  Serial.print(ax);
+  Serial.print("\tay\t");
+  Serial.print(ay);
+  Serial.print("\tmy\t");
+  Serial.print(my);
+  Serial.print("\t");
 
 }
