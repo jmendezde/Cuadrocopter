@@ -14,17 +14,10 @@ void MANDOPS4() {
 void initPS4(){
   Serial.begin(115200);
 #if !defined(__MIPSEL__)
-  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
+  while (!Serial); // Wait for serial port to connect - used on UNO R3, Teensy and other boards with built-in USB CDC serial connection
 #endif
   if (Usb.Init() == -1) {
     while (1); // Halt
   }
-/*Valores de inicio de los botones
-*
-*/
-PS4.getAnalogHat(LeftHatY)==0;
-PS4.getAnalogHat(RightHatY)==0;
-PS4.getAnalogHat(RightHatX)==0;
-PS4.getAnalogButton(R2)==0;
 }
 
