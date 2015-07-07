@@ -22,33 +22,33 @@ PS4BT PS4(&Btd);// Una vez que emparejemos la proximavez que ejecutemos el codig
 #include <PID_v1.h>//Libreria PID
 #include <Servo.h>//Libreria Servo
 #include <Wire.h>//Libreria para conectarse por Wire con los sensores
-#include <Kalman.h> //Libreria filtro de Kalman
-
-#define RESTRICT_PITCH
-
-Kalman kalmanX; // Filtro de Kalman X
-Kalman kalmanY;// Filtro de Kalman Y
-#define gyroAddress 0x68//Direccion de gyroscopio para utilizar por el wire
-#define adxlAddress 0x53//Direccion de acelerometro para utilizar por el wire
-
-
-double zeroValue[5] = { 10, 0, 227, 679, 28}; // valores de los sensores para corregirlos valores obtenidos
-
-/* Valores para el filtro de kalman
-*
-*/
-double gyroXangle = 180;
-double gyroYangle = 180;
-
-double compAngleX = 180;
-double compAngleY = 180;
-
-double xAngle = 0;
-double yAngle = 0;
-
-unsigned long timer;
-
-uint8_t buffer[2]; // I2C buffer
+//#include <Kalman.h> //Libreria filtro de Kalman
+//
+//#define RESTRICT_PITCH
+//
+//Kalman kalmanX; // Filtro de Kalman X
+//Kalman kalmanY;// Filtro de Kalman Y
+//#define gyroAddress 0x68//Direccion de gyroscopio para utilizar por el wire
+//#define adxlAddress 0x53//Direccion de acelerometro para utilizar por el wire
+//
+//
+//double zeroValue[5] = { 10, 0, 227, 679, 28}; // valores de los sensores para corregirlos valores obtenidos
+//
+///* Valores para el filtro de kalman
+//*
+//*/
+//double gyroXangle = 180;
+//double gyroYangle = 180;
+//
+//double compAngleX = 180;
+//double compAngleY = 180;
+//
+//double xAngle = 0;
+//double yAngle = 0;
+//
+//unsigned long timer;
+//
+//uint8_t buffer[2]; // I2C buffer
 /*Sensor IMU
 *
 */
@@ -103,6 +103,11 @@ Servo cuartoESC, tercerESC, primerESC, segundoESC; //declaro los servos
 #define RC_LOW_CH1 0
 #define RC_ROUNDING_BASE 50
 
+/* Interrupt lock
+ *
+ */
+boolean interruptLock = false;
+unsigned long rcLastChange3 = micros();
 
 /*Declaro los sensores del IMU para utilizarlos y sus variables a obtener
 *
@@ -132,16 +137,10 @@ PID yawReg(&ypr[2], &Output2, &SetpointYaw, Kp, Ki, Kd, DIRECT);
 
 void setup()
 {
-  //intARM();//Inicializo los valores de los ESC's
+  intARM();//Inicializo los valores de los ESC's
   // delay(ESC_ARM_DELAY);------------------------------IMPORTANTE-------------------------------------
-  Serial.begin(115200);
-#if !defined(__MIPSEL__)
-  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
-  if (Usb.Init() == -1) {
-    while (1); // Halt
-  }
   //initKalman();//Inicializo los valores de lfiltro de Kalman
+  initPS4();
   initBalancing();//Inicializo los valores de balanceo
   initRegulators();//Los valores de
   initIMU();//Inicializo el IMU
@@ -156,18 +155,31 @@ void loop() {
   computePID();//Se computan las variables del PID
   calculateVelocities();//Se calculan las velocidades
   updateMotors();//Se actualizan la velocidad de los motores
-  delay(100);
-  Serial.print("\tVA\t");
-  Serial.print(va);
-  Serial.print("\tVB\t");
-  Serial.print(vb);
-  Serial.print("\tVC\t");
-  Serial.print(vc);
-  Serial.print("\tVD\t");
-  Serial.print(vd);
-  Serial.print("\r\n");
+  //delay(100);
+//  Serial.print("\tVA\t");
+//  Serial.print(va);
+//  Serial.print("\tVB\t");
+//  Serial.print(vb);
+//  Serial.print("\tVC\t");
+//  Serial.print(vc);
+//  Serial.print("\tVD\t");
+//  Serial.print(vd);
+//  Serial.print("\r\n");
 }
 
+void rcInterrupt3(){
+   if(!interruptLock) ch3 = micros() - rcLastChange3;
+   rcLastChange3 = micros(); 
+}
+
+
+void acquireLock(){
+  interruptLock = true; 
+}
+
+void releaseLock(){
+  interruptLock = false;
+}
 
 
 

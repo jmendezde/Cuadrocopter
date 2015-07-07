@@ -1,20 +1,18 @@
 void calculateVelocities() {
 
-
-  ch3 = PS4.getAnalogHat(LeftHatX);
-  velocity = map(ch3, RC_LOW_CH1, RC_HIGH_CH1, 900, 1650);
+  acquireLock();
+  velocity = map(ch3 = PS4.getAnalogHat(LeftHatY), RC_LOW_CH1, RC_HIGH_CH1, 900, 1650);
   //velocity = map(ch3, RC_LOW_CH1, RC_HIGH_CH1, ESC_MIN, ESC_MAX);
-
+  releaseLock();
   if ((velocity < ESC_MIN) || (velocity > ESC_MAX)) velocity = velocityLast;
 
   velocityLast = velocity;
-  Serial.print("velocidad\t");
-  Serial.print(velocity);
+  Serial.print("velocidad\t");  Serial.println(velocity);
   //Xcopter
-//  va = 900 + velocity - (Output) + (Output1);
-//  vb = 900 + velocity + Output + Output1;
-//  vc = 900 + velocity + (Output) - (Output1);
-//  vd = 900 + velocity - (Output) - (Output1);
+  //  va = 900 + velocity - (Output) + (Output1);
+  //  vb = 900 + velocity + Output + Output1;
+  //  vc = 900 + velocity + (Output) - (Output1);
+  //  vd = 900 + velocity - (Output) - (Output1);
 
   //   vb = velocity + Output + Output1 - Output2;
   //   vc = velocity + Output - Output1 + Output2 ;

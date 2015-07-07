@@ -1,5 +1,5 @@
 void computePID() {
-
+acquireLock();
   //  ch1 = floor(0 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
   //  ch2 = floor(0 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
   //  ch4 = floor(0 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
@@ -41,13 +41,13 @@ void computePID() {
   pitchReg.Compute();
   yawReg.Compute();
 
-  Serial.print("\t Output-");
-  Serial.print(Output);
-  Serial.print("\t Output1-");
-  Serial.print(Output1);
-  Serial.print("\t Output2-\t");
-  Serial.print(Output2);
-
+//  Serial.print("\t Output-");
+//  Serial.print(Output);
+//  Serial.print("\t Output1-");
+//  Serial.print(Output1);
+//  Serial.print("\t Output2-\t");
+//  Serial.print(Output2);
+releaseLock();
 }
 
 void initRegulators() {
