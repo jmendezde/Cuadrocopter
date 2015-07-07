@@ -1,12 +1,12 @@
-//void MANDOPS4() {
-//Usb.Task();
-//  if (PS4.getButtonClick(PS)) {
-//    //Serial.print(F("\r\nPS"));
-//    cuartoESC.writeMicroseconds(0);
-//    tercerESC.writeMicroseconds(0);
-//    primerESC.writeMicroseconds(0);
-//    segundoESC.writeMicroseconds(0);
-//    PS4.disconnect();
-//
-//  }
-//}
+void MANDOPS4() {
+  if (PS4.connected()) {
+    if (PS4.getButtonClick(PS)) {
+      primerESC.write(0);
+      tercerESC.write(0);
+      segundoESC.write(0);
+      cuartoESC.write(0);
+      PS4.disconnect();
+    }
+  }
+}
+

@@ -7,9 +7,9 @@ void computePID() {
   ch2 = 0;
   ch4 = 0;
 
-  ch2 = map(ch2, 0, PID_PITCH_INFLUENCE, PITCH_MIN, PITCH_MAX);
-  ch1 = map(ch1, 0, PID_ROLL_INFLUENCE, ROLL_MIN, ROLL_MAX);
-  ch4 = map(ch4, 0, PID_YAW_INFLUENCE, YAW_MIN, YAW_MAX);
+  ch2 = map(ch2, 0, 255, PITCH_MIN, PITCH_MAX);
+  ch1 = map(ch1, 0, 255, ROLL_MIN, ROLL_MAX);
+  ch4 = map(ch4, 0, 255, YAW_MIN, YAW_MAX);
 //  Serial.print("\tCH1\t");
 //  Serial.print(ch1);
 //  Serial.print("\tCH2\t");
@@ -17,13 +17,13 @@ void computePID() {
 //  Serial.print("\tCH4\t");
 //  Serial.print(ch4);
 //  Serial.print("\t");
-  if ((ch2 < PITCH_MIN) || (ch2 > PITCH_MAX)) ch2 = ch2Last;
-  if ((ch1 < ROLL_MIN) || (ch1 > ROLL_MAX)) ch1 = ch1Last;
-  if ((ch4 < YAW_MIN) || (ch4 > YAW_MAX)) ch4 = ch4Last;
+//  if ((ch2 < PITCH_MIN) || (ch2 > PITCH_MAX)) ch2 = ch2Last;
+//  if ((ch1 < ROLL_MIN) || (ch1 > ROLL_MAX)) ch1 = ch1Last;
+//  if ((ch4 < YAW_MIN) || (ch4 > YAW_MAX)) ch4 = ch4Last;
 
-  ch1Last = ch1;
-  ch2Last = ch2;
-  ch4Last = ch4;
+//  ch1Last = ch1;
+//  ch2Last = ch2;
+//  ch4Last = ch4;
 
 //  ypr[0] = ypr[0] * 180 / M_PI;
 //  ypr[1] = ypr[1] * 180 / M_PI;
@@ -41,11 +41,11 @@ void computePID() {
   pitchReg.Compute();
   yawReg.Compute();
 
-  Serial.print("\t Output  ");
+  Serial.print("\t Output-");
   Serial.print(Output);
-  Serial.print("\t Output1  ");
+  Serial.print("\t Output1-");
   Serial.print(Output1);
-  Serial.print("\t Output2  ");
+  Serial.print("\t Output2-\t");
   Serial.print(Output2);
 
 }
