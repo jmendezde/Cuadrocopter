@@ -1,7 +1,7 @@
 void calculateVelocities() {
 
 
-  ch3 = floor(255 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
+  ch3 = PS4.getAnalogHat(LeftHatX);
   velocity = map(ch3, RC_LOW_CH1, RC_HIGH_CH1, 900, 1650);
   //velocity = map(ch3, RC_LOW_CH1, RC_HIGH_CH1, ESC_MIN, ESC_MAX);
 

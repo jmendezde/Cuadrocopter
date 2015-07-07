@@ -3,9 +3,9 @@ void computePID() {
   //  ch1 = floor(0 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
   //  ch2 = floor(0 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
   //  ch4 = floor(0 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
-  ch1 = 0;
-  ch2 = 0;
-  ch4 = 0;
+  ch1 = PS4.getAnalogHat(RightHatX);
+  ch2 = PS4.getAnalogHat(RightHatY);
+  ch4 = PS4.getAnalogButton(R2);
 
   ch2 = map(ch2, 0, 255, PITCH_MIN, PITCH_MAX);
   ch1 = map(ch1, 0, 255, ROLL_MIN, ROLL_MAX);
