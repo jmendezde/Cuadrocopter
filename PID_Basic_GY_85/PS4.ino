@@ -6,7 +6,6 @@ void MANDOPS4() {
       tercerESC.write(0);
       segundoESC.write(0);
       cuartoESC.write(0);
-      PS4.setLed(Red);
       PS4.disconnect();
     }
   }
