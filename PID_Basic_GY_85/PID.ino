@@ -41,11 +41,11 @@ void computePID() {
   pitchReg.Compute();
   yawReg.Compute();
 
-  Serial.print("\t Output");
+  Serial.print("\t Output  ");
   Serial.print(Output);
-  Serial.print("\t Output1");
+  Serial.print("\t Output1  ");
   Serial.print(Output1);
-  Serial.print("\t Output2");
+  Serial.print("\t Output2  ");
   Serial.print(Output2);
 
 }

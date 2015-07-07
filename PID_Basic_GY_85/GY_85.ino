@@ -22,6 +22,6 @@ void IMU() {
   Serial.print(ay);
   Serial.print("\tmy\t");
   Serial.print(my);
-  Serial.print("\t");
+  Serial.print("  ");
 
 }

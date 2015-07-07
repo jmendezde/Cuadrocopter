@@ -2,10 +2,8 @@ void calculateVelocities() {
 
 
   ch3 = floor(0 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
-  velocity = map(ch3, RC_LOW_CH1, RC_HIGH_CH1, 850, 1500);
+  velocity = map(ch3, RC_LOW_CH1, RC_HIGH_CH1, 0, 900);
   //velocity = map(ch3, RC_LOW_CH1, RC_HIGH_CH1, ESC_MIN, ESC_MAX);
-  if (velocity < 850) velocity = 850;
-  if (velocity > 2000) va = 2000;
 
   if ((velocity < ESC_MIN) || (velocity > ESC_MAX)) velocity = velocityLast;
 
@@ -13,20 +11,35 @@ void calculateVelocities() {
   Serial.print("velocidad\t");
   Serial.print(velocity);
   //Xcopter
-  //  vb = velocity + Output + Output1 - Output2;
-  //  vc = velocity + Output - Output1 + Output2 ;
-  //  vd = velocity - Output - Output1 + Output2 ;
-  //  va = velocity - Output + Output1 + Output2 ;
+  va = 900+velocity -(Output) +(Output1);
+  vb = 900+velocity + Output + Output1;
+  vc = 900+velocity +(Output) -(Output1);
+  vd = 900+velocity -(Output) -(Output1);
+
+  //   vb = velocity + Output + Output1 - Output2;
+  //   vc = velocity + Output - Output1 + Output2 ;
+  //   vd = velocity - Output - Output1 + Output2 ;
+  //   va = velocity - Output + Output1 + Output2 ;
   //Quadcopter
-  va = velocity - Output1 - Output2 ;
-  vb = velocity + Output1 - Output2;
-  vc = velocity - Output  + Output2 ;
-  vd = velocity + Output  + Output2 ;
+  //  va = velocity - Output1 - Output2 ;
+  //  vb = velocity + Output1 - Output2;
+  //  vc = velocity - Output  + Output2 ;
+  //  vd = velocity + Output  + Output2 ;
+
+
+
 
   //  va = velocity + Output1 - Output2;
   //  vc = velocity - Output1 - Output2;
   //  vd = velocity + Output + Output2;
   //  vb = velocity - Output + Output2;
+  
+  //Internet exaample
+  
+//  valCW1 = altitudeResult + rollResult + yawResult;
+//valCW2 = altitudeResult - rollResult + yawResult;
+//valCW3 = altitudeResult + pitchResult - yawResult;
+//valCW4 = altitudeResult - pitchesult - yawResult;
 
   //  v_cd = (abs(-100 + ch4) / 100) * velocity;
   //  v_ab = ((100 + ch4) / 100) * velocity;
@@ -55,10 +68,10 @@ void calculateVelocities() {
   //  vc = (abs((-100 + Output) / 100)) * v_cd;
   //  vd = (abs((-100 + Output1) / 100)) * v_cd;
 
-  if (va < 850) va = 850;
-  if (vb < 850) vb = 850;
-  if (vc < 850) vc = 850;
-  if (vd < 850) vd = 850;
+  if (va < 750) va = 750;
+  if (vb < 750) vb = 750;
+  if (vc < 750) vc = 750;
+  if (vd < 750) vd = 750;
   if (va > 2000) va = 2000;
   if (vb > 2000) vb = 2000;
   if (vc > 2000) vc = 2000;
@@ -76,14 +89,14 @@ void calculateVelocities() {
   //  Serial.print("Outpu1\t");
   //  Serial.print(Output1);
 
-  if (velocity < ESC_TAKEOFF_OFFSET) {
-
-    va = ESC_MIN;
-    vb = ESC_MIN;
-    vc = ESC_MIN;
-    vd = ESC_MIN;
-
-  }
+//  if (velocity < ESC_TAKEOFF_OFFSET) {
+//
+//    va = ESC_MIN;
+//    vb = ESC_MIN;
+//    vc = ESC_MIN;
+//    vd = ESC_MIN;
+//
+//  }
 
 }
 void updateMotors() {
