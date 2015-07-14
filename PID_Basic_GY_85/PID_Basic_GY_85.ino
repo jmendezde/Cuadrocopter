@@ -1,61 +1,49 @@
-/*Definicion de las librerias para el mando de la PS4
-*
-*/
-#include <PS4BT.h>
-#include <usbhub.h>
-
-#ifdef dobogusinclude
-#include <spi4teensy3.h>
-#include <SPI.h>
-#endif
-
-/* Configuracion de Mando PS4
- *
- */
-USB Usb;//objeto Usb para utilizar el USB task y encontrar el mando
-//USBHub Hub1(&Usb); // algunos doondlges tiene un hub
-BTD Btd(&Usb); // La instancia de doodgle
-
-//PS4BT PS4(&Btd, PAIR);//para emparejar por primera vez o cada vez que desemparejemos el mando de la PS4, pulsando Share+PS
-PS4BT PS4(&Btd);// Una vez que emparejemos la proximavez que ejecutemos el codigo podremos utilizar este metodo para solo tener que dar al boton PS en vez de  al Share+PS
+/////*Definicion de las librerias para el mando de la PS4
+////*
+////*/
+//#include <PS4BT.h>
+//#include <usbhub.h>
+//#ifdef dobogusinclude
+//#include <spi4teensy3.h>
+//#include <SPI.h>
+//#endif
+//
+///* Configuracion de Mando PS4
+// *
+// */
+//USB Usb;//objeto Usb para utilizar el USB task y encontrar el mando
+////USBHub Hub1(&Usb); // algunos doondlges tiene un hub
+//BTD Btd(&Usb); // La instancia de doodgle
+//
+////PS4BT PS4(&Btd, PAIR);//para emparejar por primera vez o cada vez que desemparejemos el mando de la PS4, pulsando Share+PS
+//PS4BT PS4(&Btd);// Una vez que emparejemos la proximavez que ejecutemos el codigo podremos utilizar este metodo para solo tener que dar al boton PS en vez de  al Share+PS
 
 #include <PID_v1.h>//Libreria PID
 #include <Servo.h>//Libreria Servo
-#include <Wire.h>//Libreria para conectarse por Wire con los sensores
-//#include <Kalman.h> //Libreria filtro de Kalman
-//
-//#define RESTRICT_PITCH
-//
-//Kalman kalmanX; // Filtro de Kalman X
-//Kalman kalmanY;// Filtro de Kalman Y
-//#define gyroAddress 0x68//Direccion de gyroscopio para utilizar por el wire
-//#define adxlAddress 0x53//Direccion de acelerometro para utilizar por el wire
-//
-//
-//double zeroValue[5] = { 10, 0, 227, 679, 28}; // valores de los sensores para corregirlos valores obtenidos
-//
-///* Valores para el filtro de kalman
-//*
-//*/
-//double gyroXangle = 180;
-//double gyroYangle = 180;
-//
-//double compAngleX = 180;
-//double compAngleY = 180;
-//
-//double xAngle = 0;
-//double yAngle = 0;
-//
-//unsigned long timer;
-//
-//uint8_t buffer[2]; // I2C buffer
-/*Sensor IMU
-*
-*/
-#include "I2Cdev.h"
-#include "ADXL345.h"
-#include "HMC5883L.h"
-#include "ITG3200.h"
+#include <Wire.h>
+#include <helper_3dmath.h>
+#include <I2Cdev.h>
+#include <MPU6050_6Axis_MotionApps20.h>
+
+/*  MPU variables
+ *
+ */
+
+MPU6050 mpu;                           // mpu interface object
+
+
+uint8_t mpuIntStatus;                  // mpu statusbyte
+uint8_t devStatus;                     // device status
+uint16_t packetSize;                   // estimated packet size
+uint16_t fifoCount;                    // fifo buffer size
+uint8_t fifoBuffer[64];                // fifo buffer
+
+Quaternion q;                          // quaternion for mpu output
+VectorFloat gravity;                   // gravity vector for ypr
+float ypr[3] = {0.0f, 0.0f, 0.0f};     // yaw pitch roll values
+float yprLast[3] = {0.0f, 0.0f, 0.0f};
+
+volatile bool mpuInterrupt = false;    //interrupt flag
 
 /*valores del pitch roll y yaw maximo y minimo
 *
@@ -109,22 +97,8 @@ Servo cuartoESC, tercerESC, primerESC, segundoESC; //declaro los servos
 boolean interruptLock = false;
 unsigned long rcLastChange3 = micros();
 
-/*Declaro los sensores del IMU para utilizarlos y sus variables a obtener
-*
-*/
-HMC5883L mag;
-ITG3200 gyro;
-ADXL345 accel;
-
-int16_t ax, ay, az;
-int16_t mx, my, mz;
-int16_t gx, gy, gz;
-
-
 //Se definen las variables a utilizar en le PID
-double SetpointRoll, SetpointPitch, SetpointYaw, InputRoll, InputPitch, InputYaw, Output, Output1, Output2;
-double ypr[3] = {0, 0, 0};
-double yprLast[3] = {0, 0, 0};
+float SetpointRoll, SetpointPitch, SetpointYaw, InputRoll, InputPitch, InputYaw, Output, Output1, Output2;
 double Kp = 2, Ki = 2, Kd = 1;
 
 /*Se declaran la funcion el PID a computar
@@ -139,32 +113,33 @@ void setup()
 {
   intARM();//Inicializo los valores de los ESC's
   // delay(ESC_ARM_DELAY);------------------------------IMPORTANTE-------------------------------------
-  //initKalman();//Inicializo los valores de lfiltro de Kalman
-  initPS4();
+  initMPU();//Inicializo los valores de lfiltro de Kalman
+  //initPS4();
   initBalancing();//Inicializo los valores de balanceo
   initRegulators();//Los valores de
-  initIMU();//Inicializo el IMU
+
   initSetpoints();//Inicializo los valores de consigana
 
 }
 void loop() {
-  Usb.Task();
-  MANDOPS4();//Subrutina Configuracion del mando de PS4
-  IMU();//Obtencion de los valores del sensor X Y Z
-  //KalmanCorrection();//Correccion de los datos del sensor
+  //Usb.Task();
+  Serial.begin(115200);
+  getYPR();//Correccion de los datos del sensor
+  //MANDOPS4();//Subrutina Configuracion del mando de PS4
   computePID();//Se computan las variables del PID
   calculateVelocities();//Se calculan las velocidades
   updateMotors();//Se actualizan la velocidad de los motores
   //delay(100);
-//  Serial.print("\tVA\t");
-//  Serial.print(va);
-//  Serial.print("\tVB\t");
-//  Serial.print(vb);
-//  Serial.print("\tVC\t");
-//  Serial.print(vc);
-//  Serial.print("\tVD\t");
-//  Serial.print(vd);
-//  Serial.print("\r\n");
+  Serial.print("\tVA\t");
+  Serial.print(va);
+  Serial.print("\tVB\t");
+  Serial.print(vb);
+  Serial.print("\tVC\t");
+  Serial.print(vc);
+  Serial.print("\tVD\t");
+  Serial.print(vd);
+  Serial.print("\r\n");
+  
 }
 
 void rcInterrupt3(){

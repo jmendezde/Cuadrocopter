@@ -1,11 +1,11 @@
 void computePID() {
 acquireLock();
-  //  ch1 = floor(0 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
-  //  ch2 = floor(0 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
-  //  ch4 = floor(0 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
-  ch1 = PS4.getAnalogHat(RightHatX);
-  ch2 = PS4.getAnalogHat(RightHatY);
-  ch4 = PS4.getAnalogButton(R2);
+    ch1 = floor(0 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
+    ch2 = floor(0 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
+    ch4 = floor(0 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
+//  ch1 = PS4.getAnalogHat(RightHatX);
+//  ch2 = PS4.getAnalogHat(RightHatY);
+//  ch4 = PS4.getAnalogButton(R2);
 
   ch2 = map(ch2, 0, 255, PITCH_MIN, PITCH_MAX);
   ch1 = map(ch1, 0, 255, ROLL_MIN, ROLL_MAX);
@@ -39,7 +39,7 @@ acquireLock();
 
   rollReg.Compute();
   pitchReg.Compute();
-  yawReg.Compute();
+  //yawReg.Compute();
 
 //  Serial.print("\t Output-");
 //  Serial.print(Output);
@@ -61,8 +61,8 @@ void initRegulators() {
   rollReg.SetOutputLimits(-PID_ROLL_INFLUENCE, PID_ROLL_INFLUENCE);
   //rollReg.SetSampleTime(19);
 
-  yawReg.SetMode(AUTOMATIC);
-  yawReg.SetOutputLimits(-PID_YAW_INFLUENCE, PID_YAW_INFLUENCE);
+  //yawReg.SetMode(AUTOMATIC);
+  //yawReg.SetOutputLimits(-PID_YAW_INFLUENCE, PID_YAW_INFLUENCE);
   //yawReg.SetSampleTime(19);
 }
 

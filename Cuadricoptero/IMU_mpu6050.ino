@@ -1,19 +1,10 @@
-void initIMU() {
+/*  getYPR function
+ *
+ *  gets data from MPU and
+ *  computes pitch, roll, yaw on the MPU's DMP
+ */
 
-  Wire.begin();
-  mpu.initialize();
-  devStatus = mpu.dmpInitialize();
-  if (devStatus == 0) {
-
-    mpu.setDMPEnabled(true);
-    attachInterrupt(0, dmpDataReady, RISING);
-    mpuIntStatus = mpu.getIntStatus();
-    packetSize = mpu.dmpGetFIFOPacketSize();
-
-  }
-}
-
-void IMU() {
+void getYPR() {
 
   mpuInterrupt = false;
   mpuIntStatus = mpu.getIntStatus();
@@ -35,7 +26,25 @@ void IMU() {
     mpu.dmpGetGravity(&gravity, &q);
     mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
 
+  }
+
 }
+
+void initMPU() {
+
+  Wire.begin();
+  mpu.initialize();
+  devStatus = mpu.dmpInitialize();
+  if (devStatus == 0) {
+
+    mpu.setDMPEnabled(true);
+    attachInterrupt(0, dmpDataReady, RISING);
+    mpuIntStatus = mpu.getIntStatus();
+    packetSize = mpu.dmpGetFIFOPacketSize();
+
+  }
+}
+
 void dmpDataReady() {
   mpuInterrupt = true;
 }

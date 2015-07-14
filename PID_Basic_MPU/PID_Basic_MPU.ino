@@ -90,13 +90,33 @@ int16_t gx, gy, gz;
 #define PID_ROLL_INFLUENCE 20
 #define PID_YAW_INFLUENCE 20
 
+/*  MPU variables
+ *
+ */
+
+MPU6050 mpu;                           // mpu interface object
+
+
+uint8_t mpuIntStatus;                  // mpu statusbyte
+uint8_t devStatus;                     // device status
+uint16_t packetSize;                   // estimated packet size
+uint16_t fifoCount;                    // fifo buffer size
+uint8_t fifoBuffer[64];                // fifo buffer
+
+Quaternion q;                          // quaternion for mpu output
+VectorFloat gravity;                   // gravity vector for ypr
+float ypr[3] = {0.0f, 0.0f, 0.0f};     // yaw pitch roll values
+float yprLast[3] = {0.0f, 0.0f, 0.0f};
+bool mpuInterrupt = false;    //interrupt flag
+
+
 double ch1, ch2, ch3, ch4;
 //Define Variables we'll be connecting to
-double SetpointRoll, SetpointPitch, SetpointYaw, InputRoll, InputPitch, InputYaw, Output, Output1, Output2;
-double ypr[3] = {0, 0, 0};
-double yprLast[3] = {0, 0, 0};
+float SetpointRoll, SetpointPitch, SetpointYaw, InputRoll, InputPitch, InputYaw, Output, Output1, Output2;
+
 //Specify the links and initial tuning parameters
 double Kp = 2, Ki = 5, Kd = 1;
+
 PID rollReg(&ypr[0], &Output, &SetpointRoll, Kp, Ki, Kd, REVERSE);
 PID pitchReg(&ypr[1], &Output1, &SetpointPitch, PITCH_P_VAL, PITCH_I_VAL, PITCH_D_VAL, REVERSE);
 PID yawReg(&ypr[2], &Output2, &SetpointYaw, Kp, Ki, Kd, DIRECT);

@@ -1,4 +1,4 @@
-void initIMU() {
+void initMPU() {
 
   Wire.begin();
   mpu.initialize();
@@ -12,8 +12,7 @@ void initIMU() {
 
   }
 }
-
-void IMU() {
+void getYPR() {
 
   mpuInterrupt = false;
   mpuIntStatus = mpu.getIntStatus();
@@ -35,7 +34,10 @@ void IMU() {
     mpu.dmpGetGravity(&gravity, &q);
     mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
 
+  }
+
 }
 void dmpDataReady() {
   mpuInterrupt = true;
 }
+
