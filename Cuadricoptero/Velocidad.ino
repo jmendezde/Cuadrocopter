@@ -6,34 +6,35 @@
 
 void calculateVelocities() {
 
-  acquireLock();
+  //acquireLock();
 
-  ch3 = floor(255 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
-  velocity = map(ch3, RC_LOW_CH3, RC_HIGH_CH3, ESC_MIN, ESC_MAX);
+  //  ch3 = floor(190 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
+  ch3 = 200;
+  velocity = map(ch3, RC_LOW_CH1, RC_HIGH_CH1, ESC_MIN, ESC_MAX);
 
-  releaseLock();
+  //releaseLock();
 
   if ((velocity < ESC_MIN) || (velocity > ESC_MAX)) velocity = velocityLast;
 
   velocityLast = velocity;
-
-//  v_ac = (abs(-100 + bal_axes) / 100) * velocity;
-//  v_bd = ((100 + bal_axes) / 100) * velocity;
 //
-//  va = ((100 + bal_ac) / 100) * v_ac;
-//  vb = ((100 + bal_bd) / 100) * v_bd;
-//
-//  vc = (abs((-100 + bal_ac) / 100)) * v_ac;
-//  vd = (abs((-100 + bal_bd) / 100)) * v_bd;
+      v_ac = (abs(-100) / 100) * velocity;
+      v_bd = ((100) / 100) * velocity;
+  
+      vb = ((100 + bal_ac) / 100) * v_ac;
+      //vb = ((100 + bal_bd) / 100) * v_bd;
+  
+      vd = (abs((-100 + bal_ac) / 100)) * v_ac;
+      //vd = (abs((-100 + bal_bd) / 100)) * v_bd;
 
   //    v_ac = (abs(-100 + bal_axes) / 100) * velocity;
   //    v_bd = ((100 + bal_axes) / 100) * velocity;
   //
-  //    va = ((100 + bal_ac) / 100) * v_ac;
-  //    vb = ((100 + bal_bd) / 100) * v_bd;
+  //      va = ((100 - bal_ac + bal_bd) / 100) * v_ac;
+  //      vb = ((100 + bal_ac + bal_bd) / 100) * v_bd;
   //
-  //    vc = (abs((-100 + bal_ac) / 100)) * v_ac;
-  //    vd = (abs((-100 + bal_bd) / 100)) * v_bd;
+  //      vc = (abs((-100 + bal_ac- bal_bd) / 100)) * v_ac;
+  //      vd = (abs((-100 -bal_ac - bal_bd) / 100)) * v_bd;
 
 
 
@@ -43,54 +44,71 @@ void calculateVelocities() {
   //  vc = 900 + velocity + (Output) - (Output1);
   //  vd = 900 + velocity - (Output) - (Output1);
 
-  //     vb = velocity + Output - Output1 - Output2;
-  //     vd = velocity + Output + Output1 + Output2 ;
-  //     vc = velocity - Output + Output1 + Output2 ;
-  //     va = velocity - Output - Output1 + Output2 ;
+  //       vb = velocity ;
+  //       vd = velocity ;
+  //       vc = velocity ;
+  //       va = velocity ;
 
-  va = velocity + bal_ac + bal_bd;
-  vb = velocity - bal_ac + bal_bd;
-  vc = velocity - bal_ac - bal_bd;
-  vd = velocity + bal_ac - bal_bd;
-
-
-  if (va < 700) va = 700;
-  if (vb < 700) vb = 700;
-  if (vc < 700) vc = 700;
-  if (vd < 700) vd = 700;
-  if (va > 2000) va = 2000;
-  if (vb > 2000) vb = 2000;
-  if (vc > 2000) vc = 2000;
-  if (vd > 2000) vd = 2000;
+  ////Pitch and Roll
+//      va = velocity - bal_ac + bal_bd;
+//      vb = velocity + bal_ac + bal_bd;
+//      vc = velocity + bal_ac - bal_bd;
+//      vd = velocity - bal_ac - bal_bd;
 
 
-  Serial.print("\t Velocidad");
+  //Pitch only
+  //  va = velocity + bal_bd;
+  //  vb = velocity + bal_bd;
+  //  vc = velocity - bal_bd;
+  //  vd = velocity - bal_bd;
+  //Roll only
+  //va = velocity - bal_ac;
+// vd = velocity + bal_ac;
+// vb = velocity + bal_ac;
+  //vc = velocity + bal_ac;
+
+  
+//
+//
+//    if (va < 600) va = 600;
+//    if (vb < 600) vb = 600;
+//    if (vc < 600) vc = 600;
+//    if (vd < 600) vd = 600;
+//    if (va > 2000) va = 2000;
+//    if (vb > 2000) vb = 2000;
+//    if (vc > 2000) vc = 2000;
+//    if (vd > 2000) vd = 2000;
+
+  //
+  Serial.print("\t Velocidad ");
   Serial.print(velocity);
   Serial.print("\t VA");
   Serial.print(va);
-  Serial.print("\t VB");
+  Serial.print("\t VB ");
   Serial.print(vb);
-  Serial.print("\t VC");
+  Serial.print("\t VC ");
   Serial.print(vc);
-  Serial.print("\t VD");
+  Serial.print("\t VD ");
   Serial.println(vd);
 
-  if (velocity < ESC_TAKEOFF_OFFSET) {
-
-    va = ESC_MIN;
-    vb = ESC_MIN;
-    vc = ESC_MIN;
-    vd = ESC_MIN;
-
-  }
+    if (velocity < ESC_TAKEOFF_OFFSET) {
+  
+      va = ESC_MIN;
+      vb = ESC_MIN;
+      vc = ESC_MIN;
+      vd = ESC_MIN;
+  
+    }
 
 }
 
 void updateMotors() {
 
-  a.write(va);
-  c.write(vc);
-  b.write(vb);
-  d.write(vd);
+  //a.write(va);
+  //c.write(vc);
+  b.writeMicroseconds(vb);
+  d.writeMicroseconds(vd);
 
 }
+
+

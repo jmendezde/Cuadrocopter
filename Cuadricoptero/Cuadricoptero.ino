@@ -10,6 +10,29 @@
 //#include <PinChangeInt.h>
 //#include <PinChangeIntConfig.h>
 
+///Librerias BT PS4
+//#include <PS4BT.h>
+//#include <usbhub.h>
+//
+////Satisfy the IDE, which needs to see the include statment in the ino too.
+//#ifdef dobogusinclude
+//#include <spi4teensy3.h>
+//#include <SPI.h>
+//#endif
+
+//USB Usb;
+//USBHub Hub1(&Usb); // Some dongles have a hub inside
+//BTD Btd(&Usb); // You have to create the Bluetooth Dongle instance like so
+
+/* You can create the instance of the PS4BT class in two ways */
+// This will start an inquiry and then pair with the PS4 controller - you only have to do this once
+// You will need to hold down the PS and Share button at the same time, the PS4 controller will then start to blink rapidly indicating that it is in paring mode
+//PS4BT PS4(&Btd, PAIR);
+
+// After that you can simply create the instance like so and then press the PS button on the device
+//PS4BT PS4(&Btd);
+
+
 #define DEBUG
 
 
@@ -17,17 +40,17 @@
  *
  */
 
-#define ESC_A 9
-#define ESC_B 6
-#define ESC_C 5
-#define ESC_D 3
+#define ESC_B 7
+#define ESC_D 6
+#define ESC_A 5
+#define ESC_C 4
 
-#define RC_1 13
-#define RC_2 12
-#define RC_3 11
-#define RC_4 10
-#define RC_5 8
-#define RC_PWR A0
+//#define RC_1 13
+//#define RC_2 12
+//#define RC_3 11
+//#define RC_4 10
+//#define RC_5 8
+//#define RC_PWR A0
 
 
 /* ESC configuration
@@ -36,7 +59,7 @@
 
 #define ESC_MIN 600
 #define ESC_MAX 2000
-#define ESC_TAKEOFF_OFFSET 30
+#define ESC_TAKEOFF_OFFSET 600
 #define ESC_ARM_DELAY 5000
 
 /* RC configuration
@@ -59,16 +82,16 @@
  *
  */
 
-#define PITCH_P_VAL 2
-#define PITCH_I_VAL 3
+#define PITCH_P_VAL 0.5
+#define PITCH_I_VAL 0
 #define PITCH_D_VAL 1
 
 #define ROLL_P_VAL 2
-#define ROLL_I_VAL 3
+#define ROLL_I_VAL 5
 #define ROLL_D_VAL 1
 
-#define YAW_P_VAL 0.5
-#define YAW_I_VAL 0
+#define YAW_P_VAL 2
+#define YAW_I_VAL 5
 #define YAW_D_VAL 1
 
 
@@ -76,15 +99,15 @@
  *
  */
 
-#define PITCH_MIN -30
-#define PITCH_MAX 30
-#define ROLL_MIN -30
-#define ROLL_MAX 30
+#define PITCH_MIN -1
+#define PITCH_MAX 1
+#define ROLL_MIN -1
+#define ROLL_MAX 1
 #define YAW_MIN -180
 #define YAW_MAX 180
-#define PID_PITCH_INFLUENCE 150
-#define PID_ROLL_INFLUENCE 150
-#define PID_YAW_INFLUENCE 150
+#define PID_PITCH_INFLUENCE 20
+#define PID_ROLL_INFLUENCE 20
+#define PID_YAW_INFLUENCE 20
 
 
 /*  MPU variables
@@ -111,7 +134,7 @@ volatile bool mpuInterrupt = false;    //interrupt flag
  *
  */
 
-boolean interruptLock = false;
+//boolean interruptLock = false;
 
 /*  RC variables
  *
@@ -119,23 +142,23 @@ boolean interruptLock = false;
 
 float ch1, ch2, ch3, ch4, ch5;         // RC channel inputs
 
-unsigned long rcLastChange1 = micros();
-unsigned long rcLastChange2 = micros();
-unsigned long rcLastChange3 = micros();
-unsigned long rcLastChange4 = micros();
-unsigned long rcLastChange5 = micros();
+//unsigned long rcLastChange1 = micros();
+//unsigned long rcLastChange2 = micros();
+//unsigned long rcLastChange3 = micros();
+//unsigned long rcLastChange4 = micros();
+//unsigned long rcLastChange5 = micros();
 
 /*  Motor controll variables
  *
  */
 
-int velocity;                          // global velocity
+float velocity;                          // global velocity
 
 float bal_ac, bal_bd;                 // motor balances can vary between -100 & 100
 float bal_axes;                       // throttle balance between axes -100:ac , +100:bd
 
-int va, vb, vc, vd;                    //velocities
-int v_ac, v_bd;                        // velocity of axes
+float va, vb, vc, vd;                    //velocities
+float v_ac, v_bd;                        // velocity of axes
 
 Servo a, b, c, d;
 
@@ -160,18 +183,18 @@ float ch1Last, ch2Last, ch4Last, velocityLast;
 
 void setup() {
 
-  initRC();                            // Self explaining
+  //initRC();                            // Self explaining
   initMPU();
   initESCs();
   initBalancing();
   initRegulators();
 
-  // #ifdef DEBUG                        // Device tests go here
+#ifdef DEBUG                        // Device tests go here
 
   Serial.begin(115200);                 // Serial only necessary if in DEBUG mode
-  // Serial.flush();
+  Serial.flush();
 
-  // #endif
+#endif
 }
 
 /* loop function
@@ -186,7 +209,7 @@ void loop() {
   //     * This should be a VERY short period
   //     */
   //
-  //  }
+  // }
   getYPR();
   computePID();
   calculateVelocities();
@@ -196,5 +219,7 @@ void loop() {
 
 
 #endif
+
+
 
 

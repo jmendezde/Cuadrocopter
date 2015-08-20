@@ -6,10 +6,10 @@
 
 void computePID() {
 
-  acquireLock();
-  ch1 = 255;
-  ch2 = 255;
-  ch4 = 255;
+  //acquireLock();
+  ch1 = 0;
+  ch2 = 0;
+  ch4 = 0;
   ch1 = floor(ch1 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
   ch2 = floor(ch2 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
   ch4 = floor(ch4 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
@@ -37,22 +37,22 @@ void computePID() {
   yprLast[0] = ypr[0];
   yprLast[1] = ypr[1];
   yprLast[2] = ypr[2];
-  Serial.print("YPR 0 ");
+  Serial.print("Y 0  ");
   Serial.print(ypr[0]);
-  Serial.print("  YPR 1 ");
+  Serial.print("  R 1  ");
   Serial.print(ypr[1]);
-  Serial.print("YPR 2 ");
+  Serial.print("  P 2  ");
   Serial.print(ypr[2]);
   pitchReg.Compute();
   rollReg.Compute();
   yawReg.Compute();
-  Serial.print("BD ");
+  Serial.print("   BD  ");
   Serial.print(bal_bd);
-  Serial.print("  AC ");
+  Serial.print("  AC  ");
   Serial.print(bal_ac);
-  Serial.print("AXES ");
+  Serial.print("  AXES  ");
   Serial.print(bal_axes);
-  releaseLock();
+  //releaseLock();
 
 }
 
@@ -60,7 +60,7 @@ void initRegulators() {
 
   pitchReg.SetMode(AUTOMATIC);
   pitchReg.SetOutputLimits(-PID_PITCH_INFLUENCE, PID_PITCH_INFLUENCE);
-
+  
   rollReg.SetMode(AUTOMATIC);
   rollReg.SetOutputLimits(-PID_ROLL_INFLUENCE, PID_ROLL_INFLUENCE);
 
@@ -77,3 +77,5 @@ void initBalancing() {
   bal_bd = 0;
 
 }
+
+

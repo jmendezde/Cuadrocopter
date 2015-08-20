@@ -5,7 +5,7 @@ void initESCs() {
   c.attach(ESC_C);
   d.attach(ESC_D);
 
-  delay(100);
+  //delay(100);
 
   arm();
 
@@ -20,3 +20,5 @@ void arm() {
   delay(ESC_ARM_DELAY);
 
 }
+
+
