@@ -18,14 +18,14 @@ void calculateVelocities() {
 
   velocityLast = velocity;
 //
-      v_ac = (abs(-100) / 100) * velocity;
-      v_bd = ((100) / 100) * velocity;
-  
-      vb = ((100 + bal_ac) / 100) * v_ac;
-      //vb = ((100 + bal_bd) / 100) * v_bd;
-  
-      vd = (abs((-100 + bal_ac) / 100)) * v_ac;
-      //vd = (abs((-100 + bal_bd) / 100)) * v_bd;
+//      v_ac = (abs(-100) / 100) * velocity;
+////      v_bd = ((100) / 100) * velocity;
+////  
+//      vb = ((100 + bal_ac) / 100) * v_ac;
+////      //vb = ((100 + bal_bd) / 100) * v_bd;
+////  
+//      vd = (abs((-100 + bal_ac) / 100)) * v_ac;
+////      //vd = (abs((-100 + bal_bd) / 100)) * v_bd;
 
   //    v_ac = (abs(-100 + bal_axes) / 100) * velocity;
   //    v_bd = ((100 + bal_axes) / 100) * velocity;
@@ -62,10 +62,10 @@ void calculateVelocities() {
   //  vc = velocity - bal_bd;
   //  vd = velocity - bal_bd;
   //Roll only
-  //va = velocity - bal_ac;
-// vd = velocity + bal_ac;
-// vb = velocity + bal_ac;
-  //vc = velocity + bal_ac;
+  vb = velocity + bal_ac;
+////// vd = velocity + bal_ac;
+////// vb = velocity + bal_ac;
+  vd = velocity - bal_ac;
 
   
 //
@@ -80,14 +80,14 @@ void calculateVelocities() {
 //    if (vd > 2000) vd = 2000;
 
   //
-  Serial.print("\t Velocidad ");
+//  Serial.print("\t Velocidad ");
   Serial.print(velocity);
-  Serial.print("\t VA");
-  Serial.print(va);
+//  Serial.print("\t VA");
+//  Serial.print(va);
   Serial.print("\t VB ");
   Serial.print(vb);
-  Serial.print("\t VC ");
-  Serial.print(vc);
+//  Serial.print("\t VC ");
+//  Serial.print(vc);
   Serial.print("\t VD ");
   Serial.println(vd);
 
