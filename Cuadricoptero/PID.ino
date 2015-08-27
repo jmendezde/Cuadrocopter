@@ -37,21 +37,21 @@ void computePID() {
   yprLast[0] = ypr[0];
   yprLast[1] = ypr[1];
   yprLast[2] = ypr[2];
-//  Serial.print("Y 0  ");
-//  Serial.print(ypr[0]);
-//  Serial.print("  R 1  ");
-//  Serial.print(ypr[1]);
-//  Serial.print("  P 2  ");
-//  Serial.print(ypr[2]);
+  //  Serial.print("Y 0  ");
+  //  Serial.print(ypr[0]);
+  //  Serial.print("  R 1  ");
+  //  Serial.print(ypr[1]);
+  //  Serial.print("  P 2  ");
+  //  Serial.print(ypr[2]);
   pitchReg.Compute();
   rollReg.Compute();
   yawReg.Compute();
-//  Serial.print("   BD  ");
-//  Serial.print(bal_bd);
-//  Serial.print("  AC  ");
-//  Serial.print(bal_ac);
-//  Serial.print("  AXES  ");
-//  Serial.print(bal_axes);
+  //  Serial.print("   BD  ");
+  //  Serial.print(bal_bd);
+  Serial.print("  AC  ");
+  Serial.print(bal_ac);
+  //  Serial.print("  AXES  ");
+  //  Serial.print(bal_axes);
   //releaseLock();
 
 }
@@ -60,10 +60,11 @@ void initRegulators() {
 
   pitchReg.SetMode(AUTOMATIC);
   pitchReg.SetOutputLimits(-PID_PITCH_INFLUENCE, PID_PITCH_INFLUENCE);
-  
+
   rollReg.SetMode(AUTOMATIC);
   rollReg.SetOutputLimits(-PID_ROLL_INFLUENCE, PID_ROLL_INFLUENCE);
-
+  rollReg.SetSampleTime(50);
+  
   yawReg.SetMode(AUTOMATIC);
   yawReg.SetOutputLimits(-PID_YAW_INFLUENCE, PID_YAW_INFLUENCE);
 

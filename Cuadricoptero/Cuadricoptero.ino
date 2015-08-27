@@ -73,7 +73,6 @@ uint8_t i2cData[14]; // Buffer for I2C data
 /* ESC configuration
  *
  */
-
 #define ESC_MIN 600
 #define ESC_MAX 2000
 #define ESC_TAKEOFF_OFFSET 600
@@ -103,9 +102,9 @@ uint8_t i2cData[14]; // Buffer for I2C data
 #define PITCH_I_VAL 0
 #define PITCH_D_VAL 1
 
-#define ROLL_P_VAL 5
-#define ROLL_I_VAL 2
-#define ROLL_D_VAL 2
+#define ROLL_P_VAL 7
+#define ROLL_I_VAL 1
+#define ROLL_D_VAL 1.5
 
 #define YAW_P_VAL 2
 #define YAW_I_VAL 5
@@ -118,8 +117,8 @@ uint8_t i2cData[14]; // Buffer for I2C data
 
 #define PITCH_MIN 0
 #define PITCH_MAX 0
-#define ROLL_MIN -0.1
-#define ROLL_MAX 0.1
+#define ROLL_MIN  0
+#define ROLL_MAX 0
 #define YAW_MIN -180
 #define YAW_MAX 180
 #define PID_PITCH_INFLUENCE 20
@@ -183,7 +182,7 @@ Servo a, b, c, d;
  *
  */
 
-PID pitchReg(&ypr[2], &bal_bd, &ch2, PITCH_P_VAL, PITCH_I_VAL, PITCH_D_VAL, REVERSE);
+PID pitchReg(&kalAngleY, &bal_bd, &ch2, PITCH_P_VAL, PITCH_I_VAL, PITCH_D_VAL, REVERSE);
 PID rollReg(&kalAngleX, &bal_ac, &ch1, ROLL_P_VAL, ROLL_I_VAL, ROLL_D_VAL, REVERSE);
 PID yawReg(&ypr[0], &bal_axes, &ch4, YAW_P_VAL, YAW_I_VAL, YAW_D_VAL, DIRECT);
 
@@ -203,6 +202,7 @@ void setup() {
 
   //initRC();                            // Self explaining
   //initMPU();
+  initi2c();
   initESCs();
   initBalancing();
   initRegulators();
