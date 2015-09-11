@@ -13,7 +13,7 @@
 
 Kalman kalmanX; // Create the Kalman instances
 Kalman kalmanY;
-/* IMU Data */
+/* IMU */
 double accX, accY, accZ;
 double gyroX, gyroY, gyroZ;
 int16_t tempRaw;
@@ -27,19 +27,19 @@ uint8_t i2cData[14]; // Buffer for I2C data
 //#include <PinChangeInt.h>
 //#include <PinChangeIntConfig.h>
 
-///Librerias BT PS4
-//#include <PS4BT.h>
-//#include <usbhub.h>
-//
-////Satisfy the IDE, which needs to see the include statment in the ino too.
-//#ifdef dobogusinclude
-//#include <spi4teensy3.h>
-//#include <SPI.h>
-//#endif
+//Librerias BT PS4
+#include <PS4BT.h>
+#include <usbhub.h>
 
-//USB Usb;
+// Satisfy the IDE, which needs to see the include statment in the ino too.
+#ifdef dobogusinclude
+#include <spi4teensy3.h>
+#include <SPI.h>
+#endif
+
+USB Usb;
 //USBHub Hub1(&Usb); // Some dongles have a hub inside
-//BTD Btd(&Usb); // You have to create the Bluetooth Dongle instance like so
+BTD Btd(&Usb); // You have to create the Bluetooth Dongle instance like so
 
 /* You can create the instance of the PS4BT class in two ways */
 // This will start an inquiry and then pair with the PS4 controller - you only have to do this once
@@ -47,13 +47,16 @@ uint8_t i2cData[14]; // Buffer for I2C data
 //PS4BT PS4(&Btd, PAIR);
 
 // After that you can simply create the instance like so and then press the PS button on the device
-//PS4BT PS4(&Btd);
+PS4BT PS4(&Btd);
+
+bool printAngle, printTouch;
+uint8_t oldL2Value, oldR2Value;
 
 
 #define DEBUG
 
 
-/*  Arduino Pin configuration
+/*  Arduino Pines
  *
  */
 
@@ -62,15 +65,7 @@ uint8_t i2cData[14]; // Buffer for I2C data
 #define ESC_A 5
 #define ESC_C 4
 
-//#define RC_1 13
-//#define RC_2 12
-//#define RC_3 11
-//#define RC_4 10
-//#define RC_5 8
-//#define RC_PWR A0
-
-
-/* ESC configuration
+/* Configuracion de ESC
  *
  */
 #define ESC_MIN 600
@@ -78,7 +73,7 @@ uint8_t i2cData[14]; // Buffer for I2C data
 #define ESC_TAKEOFF_OFFSET 600
 #define ESC_ARM_DELAY 5000
 
-/* RC configuration
+/* Configuracion del Mando
  *
  */
 
@@ -94,7 +89,7 @@ uint8_t i2cData[14]; // Buffer for I2C data
 #define RC_LOW_CH5 255
 #define RC_ROUNDING_BASE 50
 
-/*  PID configuration
+/* Configuracion PID
  *
  */
 
@@ -102,16 +97,16 @@ uint8_t i2cData[14]; // Buffer for I2C data
 #define PITCH_I_VAL 0
 #define PITCH_D_VAL 1
 
-#define ROLL_P_VAL 7
-#define ROLL_I_VAL 1
-#define ROLL_D_VAL 1.5
+#define ROLL_P_VAL 2.5
+#define ROLL_I_VAL 1.5
+#define ROLL_D_VAL 1
 
 #define YAW_P_VAL 2
 #define YAW_I_VAL 5
 #define YAW_D_VAL 1
 
 
-/* Flight parameters
+/* Parametros de Vuelo
  *
  */
 
@@ -121,8 +116,8 @@ uint8_t i2cData[14]; // Buffer for I2C data
 #define ROLL_MAX 0
 #define YAW_MIN -180
 #define YAW_MAX 180
-#define PID_PITCH_INFLUENCE 20
-#define PID_ROLL_INFLUENCE 150
+#define PID_PITCH_INFLUENCE 100
+#define PID_ROLL_INFLUENCE 250
 #define PID_YAW_INFLUENCE 20
 
 
@@ -141,10 +136,10 @@ uint8_t fifoBuffer[64];                // fifo buffer
 
 Quaternion q;                          // quaternion for mpu output
 VectorFloat gravity;                   // gravity vector for ypr
-float ypr[3] = {0.0f, 0.0f, 0.0f};     // yaw pitch roll values
+float ypr[3] = {0.0f, 0.0f, 0.0f};     // Valores yaw pitch roll
 float yprLast[3] = {0.0f, 0.0f, 0.0f};
 
-volatile bool mpuInterrupt = false;    //interrupt flag
+volatile bool mpuInterrupt = false;    //Interrupcion
 
 /* Interrupt lock
  *
@@ -156,7 +151,7 @@ volatile bool mpuInterrupt = false;    //interrupt flag
  *
  */
 
-float ch1, ch2, ch3, ch4, ch5;         // RC channel inputs
+float ch1, ch2, ch3, ch4, ch5;         // Inputs del mando
 
 //unsigned long rcLastChange1 = micros();
 //unsigned long rcLastChange2 = micros();
@@ -164,7 +159,7 @@ float ch1, ch2, ch3, ch4, ch5;         // RC channel inputs
 //unsigned long rcLastChange4 = micros();
 //unsigned long rcLastChange5 = micros();
 
-/*  Motor controll variables
+/*  Variables del Motor
  *
  */
 
@@ -173,7 +168,7 @@ float velocity;                          // global velocity
 float bal_ac, bal_bd;                 // motor balances can vary between -100 & 100
 float bal_axes;                       // throttle balance between axes -100:ac , +100:bd
 
-float va, vb, vc, vd;                    //velocities
+float va, vb, vc, vd;                    //Velocidades de los motores
 float v_ac, v_bd;                        // velocity of axes
 
 Servo a, b, c, d;
@@ -188,46 +183,35 @@ PID yawReg(&ypr[0], &bal_axes, &ch4, YAW_P_VAL, YAW_I_VAL, YAW_D_VAL, DIRECT);
 
 
 
-/*  Filter variables
+/*  Variables de los filtros de Vuelo
  *
  */
 
 float ch1Last, ch2Last, ch4Last, velocityLast;
 
-/*  Setup function
- *
- */
 
 void setup() {
-
-  //initRC();                            // Self explaining
+  Serial.begin(115200);
+#if !defined(__MIPSEL__)
+  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
+#endif
+  if (Usb.Init() == -1) {
+    Serial.print(F("\r\nOSC did not start"));
+    while (1); // Halt
+  }
+  Serial.print(F("\r\nPS4 Bluetooth Library Started"));
   //initMPU();
   initi2c();
   initESCs();
   initBalancing();
   initRegulators();
 
-#ifdef DEBUG                        // Device tests go here
-
-  Serial.begin(115200);                 // Serial only necessary if in DEBUG mode
-  Serial.flush();
-
-#endif
 }
 
-/* loop function
- *
- */
 
 void loop() {
 
-  //  while(!mpuInterrupt && fifoCount < packetSize){
-  //
-  //    /* Do nothing while MPU is not working
-  //     * This should be a VERY short period
-  //     */
-  //
-  // }
+  Usb.Task();
   //getYPR();
   KalmanCorrection();
   computePID();

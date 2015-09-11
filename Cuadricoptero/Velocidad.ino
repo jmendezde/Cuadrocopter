@@ -7,9 +7,9 @@
 void calculateVelocities() {
 
   //acquireLock();
-
-  //  ch3 = floor(190 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
-  ch3 = 200;
+  ch3 = PS4.getAnalogHat(LeftHatY);
+ // ch3 = floor(190 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
+ 
   velocity = map(ch3, RC_LOW_CH1, RC_HIGH_CH1, ESC_MIN, ESC_MAX);
   //velocity = map(ch3, RC_LOW_CH1, RC_HIGH_CH1, 22, 80);
 
@@ -58,9 +58,9 @@ void calculateVelocities() {
 
 
   //Pitch only
-  //  va = velocity + bal_bd;
+    //va = velocity - bal_bd;
   //  vb = velocity + bal_bd;
-  //  vc = velocity - bal_bd;
+    //vc = velocity + bal_bd;
   //  vd = velocity - bal_bd;
   //Roll only
    vb = velocity + bal_ac;
@@ -82,15 +82,16 @@ void calculateVelocities() {
 
   //
   Serial.print("\t Velocidad ");
-  Serial.print(velocity);
+  Serial.println(ch3);
+
   //  Serial.print("\t VA");
   //  Serial.print(va);
-  Serial.print("\t VB ");
-  Serial.print(vb);
+  //////Serial.print("\t VB ");
+ /////// Serial.print(vb);
   //  Serial.print("\t VC ");
   //  Serial.print(vc);
-  Serial.print("\t VD ");
-  Serial.println(vd);
+ ////// Serial.print("\t VD ");
+ //// Serial.println(vd);
 
   if (velocity < ESC_TAKEOFF_OFFSET) {
 
