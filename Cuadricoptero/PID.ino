@@ -7,8 +7,10 @@
 void computePID() {
 
   //acquireLock();
-  ch1 = PS4.getAnalogHat(RightHatX);
-  ch2 = PS4.getAnalogHat(RightHatY);
+  ch1 = 0;
+  ch2 = 0;
+  //ch1 = PS4.getAnalogHat(RightHatX);
+  //ch2 = PS4.getAnalogHat(RightHatY);
   ch4 = 0;
   ch1 = floor(ch1 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
   ch2 = floor(ch2 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
@@ -46,9 +48,9 @@ void computePID() {
   pitchReg.Compute();
   rollReg.Compute();
   yawReg.Compute();
-//  Serial.print("   BD  ");
-//  Serial.print(bal_bd);
-//  Serial.print("  AC  ");
+  //  Serial.print("   BD  ");
+  //  Serial.print(bal_bd);
+  //  Serial.print("  AC  ");
   //Serial.print(bal_ac);
   //  Serial.print("  AXES  ");
   //  Serial.print(bal_axes);
@@ -63,8 +65,8 @@ void initRegulators() {
 
   rollReg.SetMode(AUTOMATIC);
   rollReg.SetOutputLimits(-PID_ROLL_INFLUENCE, PID_ROLL_INFLUENCE);
-  rollReg.SetSampleTime(50);
-  
+  // rollReg.SetSampleTime(50);
+
   yawReg.SetMode(AUTOMATIC);
   yawReg.SetOutputLimits(-PID_YAW_INFLUENCE, PID_YAW_INFLUENCE);
 

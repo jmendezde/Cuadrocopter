@@ -7,9 +7,10 @@
 void calculateVelocities() {
 
   //acquireLock();
-  ch3 = PS4.getAnalogHat(LeftHatY);
- // ch3 = floor(190 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
- 
+  //ch3 = PS4.getAnalogHat(LeftHatY);
+  ch3 = 200;
+  // ch3 = floor(190 / RC_ROUNDING_BASE) * RC_ROUNDING_BASE;
+
   velocity = map(ch3, RC_LOW_CH1, RC_HIGH_CH1, ESC_MIN, ESC_MAX);
   //velocity = map(ch3, RC_LOW_CH1, RC_HIGH_CH1, 22, 80);
 
@@ -19,10 +20,10 @@ void calculateVelocities() {
 
   velocityLast = velocity;
   //
- // v_ac = (abs(-100) / 100) * velocity;
+  // v_ac = (abs(-100) / 100) * velocity;
   ////      v_bd = ((100) / 100) * velocity;
   ////
- // vb = ((100 + bal_ac) / 100) * v_ac;
+  // vb = ((100 + bal_ac) / 100) * v_ac;
   ////      //vb = ((100 + bal_bd) / 100) * v_bd;
   ////
   //vd = (abs((-100 + bal_ac) / 100)) * v_ac;
@@ -58,19 +59,24 @@ void calculateVelocities() {
 
 
   //Pitch only
-    //va = velocity - bal_bd;
+  //va = velocity - bal_bd;
   //  vb = velocity + bal_bd;
-    //vc = velocity + bal_bd;
+  //vc = velocity + bal_bd;
   //  vd = velocity - bal_bd;
   //Roll only
-   vb = velocity + bal_ac;
+  //vb = velocity + bal_ac;
   ////// vd = velocity + bal_ac;
   ////// vb = velocity + bal_ac;
-    vd = velocity - bal_ac;
+  //vd = velocity - bal_ac;
 
 
-  //
-  //
+  //Xcopter
+  va = velocity + bal_ac;
+  vd = velocity + bal_ac;
+  vb = velocity - bal_ac;
+  vc = velocity - bal_ac;
+  
+
   //    if (va < 600) va = 600;
   //    if (vb < 600) vb = 600;
   //    if (vc < 600) vc = 600;
@@ -82,16 +88,18 @@ void calculateVelocities() {
 
   //
   Serial.print("\t Velocidad ");
-  Serial.println(ch3);
+  Serial.print(velocity);
+  Serial.print("\t bal_ac ");
+  Serial.print(bal_ac);
 
-  //  Serial.print("\t VA");
-  //  Serial.print(va);
-  //////Serial.print("\t VB ");
- /////// Serial.print(vb);
-  //  Serial.print("\t VC ");
-  //  Serial.print(vc);
- ////// Serial.print("\t VD ");
- //// Serial.println(vd);
+  Serial.print("\t VA");
+  Serial.print(va);
+  Serial.print("\t VB ");
+  Serial.print(vb);
+  Serial.print("\t VC ");
+  Serial.print(vc);
+  Serial.print("\t VD ");
+  Serial.println(vd);
 
   if (velocity < ESC_TAKEOFF_OFFSET) {
 
@@ -106,10 +114,18 @@ void calculateVelocities() {
 
 void updateMotors() {
 
-  //a.write(va);
-  //c.write(vc);
+ // a.writeMicroseconds(va);
+//  c.writeMicroseconds(vc);
   b.writeMicroseconds(vb);
   d.writeMicroseconds(vd);
+
+}
+void apagadomando() {
+
+  a.writeMicroseconds(600);
+  c.writeMicroseconds(600);
+  b.writeMicroseconds(600);
+  d.writeMicroseconds(600);
 
 }
 

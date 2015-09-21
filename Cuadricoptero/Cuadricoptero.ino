@@ -97,9 +97,9 @@ uint8_t oldL2Value, oldR2Value;
 #define PITCH_I_VAL 0
 #define PITCH_D_VAL 1
 
-#define ROLL_P_VAL 2.5
-#define ROLL_I_VAL 1.5
-#define ROLL_D_VAL 1
+#define ROLL_P_VAL 8
+#define ROLL_I_VAL 1
+#define ROLL_D_VAL 3.5
 
 #define YAW_P_VAL 2
 #define YAW_I_VAL 5
@@ -110,14 +110,14 @@ uint8_t oldL2Value, oldR2Value;
  *
  */
 
-#define PITCH_MIN 0
-#define PITCH_MAX 0
-#define ROLL_MIN  0
-#define ROLL_MAX 0
+#define PITCH_MIN -15
+#define PITCH_MAX 15
+#define ROLL_MIN  2
+#define ROLL_MAX 2
 #define YAW_MIN -180
 #define YAW_MAX 180
-#define PID_PITCH_INFLUENCE 100
-#define PID_ROLL_INFLUENCE 250
+#define PID_PITCH_INFLUENCE 20
+#define PID_ROLL_INFLUENCE 150
 #define PID_YAW_INFLUENCE 20
 
 
@@ -177,8 +177,8 @@ Servo a, b, c, d;
  *
  */
 
-PID pitchReg(&kalAngleY, &bal_bd, &ch2, PITCH_P_VAL, PITCH_I_VAL, PITCH_D_VAL, REVERSE);
-PID rollReg(&kalAngleX, &bal_ac, &ch1, ROLL_P_VAL, ROLL_I_VAL, ROLL_D_VAL, REVERSE);
+PID pitchReg(&kalAngleX, &bal_bd, &ch2, PITCH_P_VAL, PITCH_I_VAL, PITCH_D_VAL, REVERSE);
+PID rollReg(&kalAngleY, &bal_ac, &ch1, ROLL_P_VAL, ROLL_I_VAL, ROLL_D_VAL, REVERSE);
 PID yawReg(&ypr[0], &bal_axes, &ch4, YAW_P_VAL, YAW_I_VAL, YAW_D_VAL, DIRECT);
 
 
@@ -199,7 +199,7 @@ void setup() {
     Serial.print(F("\r\nOSC did not start"));
     while (1); // Halt
   }
-  Serial.print(F("\r\nPS4 Bluetooth Library Started"));
+  //Serial.print(F("\r\nPS4 Bluetooth Library Started"));
   //initMPU();
   initi2c();
   initESCs();
@@ -215,10 +215,18 @@ void loop() {
   //getYPR();
   KalmanCorrection();
   computePID();
-  calculateVelocities();
-  updateMotors();
+  if (PS4.connected()) {
+    calculateVelocities();
+    updateMotors();
+  }  
+ if (PS4.getButtonClick(PS)) {
+      apagadomando();
+      PS4.disconnect();
+    }
+    
+  }
+  
 
-}
 
 
 #endif
